@@ -10,6 +10,8 @@ import { PersonFeedback20Regular } from '@fluentui/react-icons';
 interface AnalysisFooterProps {
   currentStep: number;
   setCurrentStep: (step: number) => void;
+  onSave?: () => void;       // Prop baru: Fungsi untuk mengeksekusi simpan data
+  isSaving?: boolean;        // Prop baru: Status untuk mendisable tombol saat loading
 }
 
 // ============================================================================
@@ -45,16 +47,30 @@ const useStyles = makeStyles({
 // ============================================================================
 // MAIN COMPONENT
 // ============================================================================
-export default function AnalysisFooter({ currentStep, setCurrentStep }: AnalysisFooterProps) {
+export default function AnalysisFooter({ 
+  currentStep, 
+  setCurrentStep, 
+  onSave,       // Ekstrak prop
+  isSaving      // Ekstrak prop
+}: AnalysisFooterProps) {
   const styles = useStyles();
 
-  // Logika navigasi antar langkah
+  // Logika navigasi antar langkah (Maksimal 5 langkah)
   const handleNext = () => {
-    if (currentStep < 6) setCurrentStep(currentStep + 1);
+    if (currentStep < 5) setCurrentStep(currentStep + 1);
   };
 
   const handlePrev = () => {
     if (currentStep > 1) setCurrentStep(currentStep - 1);
+  };
+
+  // Logika saat tombol submit/simpan diklik pada halaman terakhir
+  const handleSubmit = () => {
+    if (onSave) {
+      onSave(); // Panggil fungsi simpan yang dilempar dari parent
+    } else {
+      console.warn('Fungsi onSave belum dihubungkan dari komponen induk!');
+    }
   };
 
   return (
@@ -64,18 +80,29 @@ export default function AnalysisFooter({ currentStep, setCurrentStep }: Analysis
       <div className={styles.buttonGroup}>
         <Button 
           appearance="outline" 
-          disabled={currentStep === 1} // Nonaktif jika di halaman pertama
+          disabled={currentStep === 1 || isSaving} 
           onClick={handlePrev}
         >
           Previous
         </Button>
-        <Button 
-          appearance="primary" 
-          disabled={currentStep === 6} // Nonaktif jika di halaman terakhir
-          onClick={handleNext}
-        >
-          Berikutnya
-        </Button>
+
+        {/* Jika di langkah 5, tampilkan tombol Simpan. Jika belum, tampilkan tombol Berikutnya */}
+        {currentStep === 5 ? (
+          <Button 
+            appearance="primary" 
+            onClick={handleSubmit}
+            disabled={isSaving} // Tombol mati saat proses simpan berjalan
+          >
+            {isSaving ? 'Menyimpan...' : 'Simpan Data'}
+          </Button>
+        ) : (
+          <Button 
+            appearance="primary" 
+            onClick={handleNext}
+          >
+            Berikutnya
+          </Button>
+        )}
       </div>
 
       {/* --- RIGHT: FEEDBACK LINK --- */}

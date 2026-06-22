@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   makeStyles,
   tokens,
@@ -8,11 +8,19 @@ import {
   Text,
 } from '@fluentui/react-components';
 
+// Impor 5 komponen step
 import IdentitasOrangTua from './steps/IdentitasOrangTua';
 import RiwayatKesehatanIbu from './steps/RiwayatKesehatanIbu';
 import DataKehamilan from './steps/DataKehamilan';
-import BiometrikJanin from './steps/BiometrikJanin';
-import DopplerUsg from './steps/DopplerUsg';
+import OutcomeKehamilan from './steps/OutcomeKehamilan';
+import HasilAnalisis from './steps/HasilAnalisis'; 
+
+// Impor Footer dan AlertModal 
+import AnalysisFooter from './AnalysisFooter'; 
+import AlertModal from '../../ui/AlertModal';
+
+// Impor Interface Data
+import { AnalysisFormData } from '../../../type/analysis';
 
 // ============================================================================
 // INTERFACE PROPS
@@ -82,13 +90,15 @@ const useStyles = makeStyles({
   },
 });
 
+// ============================================================================
+// DATA STEPPER
+// ============================================================================
 const STEP_LIST = [
   'Identitas Orang Tua',
   'Riwayat Kesehatan Ibu',
   'Data Kehamilan',
-  'Biometrik Janin',
-  'Doppler USG',
-  'Hasil Analisis',
+  'Outcome Kehamilan',
+  'Hasil Analisis', 
 ];
 
 // ============================================================================
@@ -96,6 +106,99 @@ const STEP_LIST = [
 // ============================================================================
 export default function AnalysisBody({ currentStep, setCurrentStep }: AnalysisBodyProps) {
   const styles = useStyles();
+
+  const [formData, setFormData] = useState<AnalysisFormData>({
+    // Langkah 1: Identitas Orang Tua
+    nama_ibu: '', 
+    mage: '', 
+    meduc_cat: '',
+    meduc_raw: 1, 
+    racemom: '0', 
+    hispmom: 'N', 
+    marital: '1', 
+    nama_ayah: '', 
+    fage: '', 
+    feduc_cat: '',
+    feduc_raw: 1, 
+    racedad: '0', 
+    hispdad: 'N',
+    
+    // Langkah 2: Riwayat Kesehatan Ibu
+    anemia: false, 
+    jantung: false, 
+    paru: false, 
+    diabetes: false, 
+    hipertensi_kronis: false,
+    hipertensi_gestasional: false, 
+    eklamsia: false, 
+    ginjal: false, 
+    herpes: false, 
+    hydram: false, 
+    hemoglob: '', 
+    cervix: false, 
+    uterine: false,
+    totalp: '', 
+    bdead: '', 
+    preterm: '', 
+    pinfant: '',
+    
+    // Langkah 3: Data Kehamilan Saat Ini
+    weeks: '', 
+    gained: '', 
+    visits: '', 
+    cignum: '', 
+    drinknum: '',
+    
+    // Langkah 4: Outcome Kehamilan
+    bweight: '', 
+    loutcome: '', 
+    sex: ''
+  });
+
+  // 2. State untuk menangani Data AI dan Proses Penyimpanan
+  const [apiData, setApiData] = useState<any>(null); 
+  const [isSaving, setIsSaving] = useState(false);
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const [alertConfig, setAlertConfig] = useState<{type: 'success' | 'error' | 'info' | 'warning', message: string}>({ 
+    type: 'success', 
+    message: '' 
+  });
+
+  // 3. Fungsi untuk mengupdate field form secara dinamis
+  const updateFields = (fields: Partial<AnalysisFormData>) => {
+    setFormData(prev => ({ ...prev, ...fields }));
+  };
+
+  // 4. Fungsi Utama untuk Menyimpan Data ke DB
+  const handleSaveData = async () => {
+    if (!apiData) {
+      setAlertConfig({ type: 'warning', message: 'Data analisis belum selesai dimuat. Silakan tunggu sebentar.' });
+      setIsAlertOpen(true);
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const response = await fetch('/api/save-analysis', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ formData, apiData }) 
+      });
+      
+      const result = await response.json();
+      if (result.success) {
+        setAlertConfig({ type: 'success', message: 'Data rekam medis dan analisis AI berhasil disimpan permanen ke database!' });
+        setIsAlertOpen(true);
+      } else {
+        throw new Error(result.message);
+      }
+    } catch (error: any) {
+      setAlertConfig({ type: 'error', message: `Gagal menyimpan data: ${error.message}` });
+      setIsAlertOpen(true);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div className={styles.bodyContainer}>
@@ -125,20 +228,39 @@ export default function AnalysisBody({ currentStep, setCurrentStep }: AnalysisBo
       <div className={styles.infoSection}>
         <Text>
           Formulir ini digunakan untuk mengumpulkan data komprehensif pasien guna analisis laporan medis. 
-          Pastikan setiap detail yang dimasukkan akurat untuk menunjang akurasi hasil diagnosa dan 
-          pemantauan kondisi kesehatan ibu maupun janin secara berkelanjutan.
+          Pastikan setiap detail yang dimasukkan akurat sesuai dengan kode variabel (MAGE, MEDUC, dll) 
+          untuk keperluan dataset medis.
         </Text>
         <Link>Pelajari prosedur pengisian data</Link>
       </div>
 
-      {/* --- DYNAMIC FORM RENDERING --- */}
-      {currentStep === 1 && <IdentitasOrangTua />}
-      {currentStep === 2 && <RiwayatKesehatanIbu />}
-      {currentStep === 3 && <DataKehamilan />}
-      {currentStep === 4 && <BiometrikJanin />}
-      {currentStep === 5 && <DopplerUsg />}
+      {/* --- DYNAMIC FORM RENDERING DENGAN PROPS --- */}
+      {currentStep === 1 && <IdentitasOrangTua data={formData} updateFields={updateFields} />}
+      {currentStep === 2 && <RiwayatKesehatanIbu data={formData} updateFields={updateFields} />}
+      {currentStep === 3 && <DataKehamilan data={formData} updateFields={updateFields} />}
+      {currentStep === 4 && <OutcomeKehamilan data={formData} updateFields={updateFields} />}
       
-      {currentStep === 6 && <Text>Hasil Analisis (Segera hadir...)</Text>}
+      {/* Lempar setApiData ke HasilAnalisis agar data AI bisa disimpan di state parent ini */}
+      {currentStep === 5 && <HasilAnalisis formData={formData} onApiDataLoaded={setApiData} />}
+
+      {/* --- FOOTER DI RENDER DI SINI --- */}
+      {/* Footer memiliki akses langsung ke currentStep, navigasi, dan fungsi simpan */}
+      <AnalysisFooter 
+        currentStep={currentStep} 
+        setCurrentStep={setCurrentStep} 
+        onSave={handleSaveData} 
+        isSaving={isSaving} 
+      />
+
+      {/* --- ALERT MODAL --- */}
+      {isAlertOpen && (
+        <AlertModal 
+          isOpen={isAlertOpen} 
+          onClose={() => setIsAlertOpen(false)} 
+          type={alertConfig.type} 
+          message={alertConfig.message} 
+        />
+      )}
 
     </div>
   );

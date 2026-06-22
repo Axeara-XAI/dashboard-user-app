@@ -1,177 +1,176 @@
 'use client';
 
 import React from 'react';
-import {
-  makeStyles,
-  tokens,
-  Dropdown,
-  Option,
-  Label,
-  Input,
-} from '@fluentui/react-components';
+import { makeStyles, tokens, Dropdown, Option, Label, Input } from '@fluentui/react-components';
+import { AnalysisFormData } from '../../../../type/analysis';
 
-// ============================================================================
-// STYLES DEFINITION
-// ============================================================================
 const useStyles = makeStyles({
-  formSection: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '24px',
-    maxWidth: '700px',
-  },
-  sectionTitle: {
-    fontSize: '16px',
-    fontWeight: '600',
-    marginBottom: '8px',
-    color: tokens.colorBrandForeground1,
-    borderBottom: `1px dashed ${tokens.colorNeutralStroke2}`,
-    paddingBottom: '8px',
-  },
-  formRow: {
-    display: 'grid',
-    gridTemplateColumns: '220px 1fr',
-    alignItems: 'center',
-    gap: '16px',
-  },
-  labelWrapper: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '4px',
-  },
-  asterisk: {
-    color: tokens.colorPaletteRedForeground1,
-  },
-  inputWrapper: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '4px',
-    alignItems: 'flex-start',
-    width: '100%',
-  },
-  inputField: {
-    width: '100%',
-  },
-  subSectionTitle: {
-    fontSize: '14px',
-    fontWeight: '600',
-    color: tokens.colorNeutralForeground2,
-    marginTop: '8px',
-  },
+  formSection: { display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '700px' },
+  sectionTitle: { fontSize: '16px', fontWeight: '600', marginBottom: '8px', color: tokens.colorBrandForeground1, borderBottom: `1px dashed ${tokens.colorNeutralStroke2}`, paddingBottom: '8px' },
+  formRow: { display: 'grid', gridTemplateColumns: '260px 1fr', alignItems: 'center', gap: '16px' },
+  labelWrapper: { display: 'flex', alignItems: 'center', gap: '4px' },
+  inputWrapper: { display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-start', width: '100%' },
+  inputField: { width: '100%' },
 });
 
-// ============================================================================
-// MAIN COMPONENT
-// ============================================================================
-export default function RiwayatKesehatanIbu() {
+interface StepProps {
+  data: AnalysisFormData;
+  updateFields: (fields: Partial<AnalysisFormData>) => void;
+}
+
+// Map Data untuk Dropdown Multiselect
+const PENYAKIT_KRONIS: Record<string, string> = {
+  anemia: 'Anemia (ANEMIA)',
+  jantung: 'Jantung (CARDIAC)',
+  paru: 'Paru-paru (ACLUNG)',
+  diabetes: 'Diabetes (DIABETES)',
+  hipertensi_kronis: 'Hipertensi kronis (HYPERCH)'
+};
+
+const KONDISI_OBSTETRI: Record<string, string> = {
+  hydram: 'Hydramnios (HYDRAM)',
+  hipertensi_gestasional: 'Hyperpr (HYPERPR)',
+  cervix: 'Cervix (CERVIX)',
+  uterine: 'Uterine (UTERINE)',
+  eklamsia: 'Eklampsia (ECLAMP)'
+};
+
+export default function RiwayatKesehatanIbu({ data, updateFields }: StepProps) {
   const styles = useStyles();
+
+  // Helper membaca status checkbox saat ini
+  const selectedPenyakit = Object.keys(PENYAKIT_KRONIS).filter(key => data[key as keyof AnalysisFormData]);
+  const selectedObstetri = Object.keys(KONDISI_OBSTETRI).filter(key => data[key as keyof AnalysisFormData]);
+  const selectedInfeksi = data.herpes ? ['herpes'] : [];
 
   return (
     <>
-      {/* --- FORM SECTION: KONDISI MEDIS IBU --- */}
       <div className={styles.formSection}>
-        <h2 className={styles.sectionTitle}>Kondisi Medis &amp; Obstetri</h2>
-
+        <h2 className={styles.sectionTitle}>Kondisi Medis & Obstetri</h2>
+        
         <div className={styles.formRow}>
-          <div className={styles.labelWrapper}>
-            <Label>Penyakit Kronis</Label>
-          </div>
+          <div className={styles.labelWrapper}><Label>Penyakit Kronis</Label></div>
           <div className={styles.inputWrapper}>
-            <Input 
-              placeholder="Masukkan penyakit kronis jika ada (misal: Diabetes, Hipertensi)" 
-              className={styles.inputField} 
-            />
-          </div>
-        </div>
-
-        <div className={styles.formRow}>
-          <div className={styles.labelWrapper}>
-            <Label>Riwayat Infeksi</Label>
-          </div>
-          <div className={styles.inputWrapper}>
-            <Input 
-              placeholder="Masukkan riwayat infeksi (misal: TORCH, Infeksi Saluran Kemih)" 
-              className={styles.inputField} 
-            />
-          </div>
-        </div>
-
-        <div className={styles.formRow}>
-          <div className={styles.labelWrapper}>
-            <Label>Kondisi Obstetri</Label>
-            <span className={styles.asterisk}>*</span>
-          </div>
-          <div className={styles.inputWrapper}>
-            <Dropdown placeholder="Pilih kondisi obstetri yang terdeteksi" className={styles.inputField}>
-              <Option>Hydramnios</Option>
-              <Option>Hemoglob</Option>
-              <Option>Hyperpr</Option>
-              <Option>Cervix</Option>
-              <Option>Uterine</Option>
-              <Option>Eklampsia</Option>
+            <Dropdown 
+              multiselect 
+              placeholder="Pilih kondisi penyerta" 
+              className={styles.inputField}
+              selectedOptions={selectedPenyakit}
+              value={selectedPenyakit.map(k => PENYAKIT_KRONIS[k]).join(', ')}
+              onOptionSelect={(e, props) => {
+                const isSelected = props.selectedOptions.includes(props.optionValue as string);
+                updateFields({ [props.optionValue as string]: isSelected });
+              }}
+            >
+              {Object.entries(PENYAKIT_KRONIS).map(([key, label]) => (
+                <Option key={key} value={key}>{label}</Option>
+              ))}
             </Dropdown>
+          </div>
+        </div>
+
+        <div className={styles.formRow}>
+          <div className={styles.labelWrapper}><Label>Riwayat Infeksi</Label></div>
+          <div className={styles.inputWrapper}>
+            <Dropdown 
+              multiselect 
+              placeholder="Pilih infeksi" 
+              className={styles.inputField}
+              selectedOptions={selectedInfeksi}
+              value={selectedInfeksi.length ? 'Herpes (HERPES)' : ''}
+              onOptionSelect={(e, props) => {
+                updateFields({ herpes: props.selectedOptions.includes('herpes') });
+              }}
+            >
+              <Option value="herpes">Herpes (HERPES)</Option>
+            </Dropdown>
+          </div>
+        </div>
+
+        <div className={styles.formRow}>
+          <div className={styles.labelWrapper}><Label>Kondisi Obstetri</Label></div>
+          <div className={styles.inputWrapper}>
+            <Dropdown 
+              multiselect 
+              placeholder="Pilih kondisi obstetri" 
+              className={styles.inputField}
+              selectedOptions={selectedObstetri}
+              value={selectedObstetri.map(k => KONDISI_OBSTETRI[k]).join(', ')}
+              onOptionSelect={(e, props) => {
+                const isSelected = props.selectedOptions.includes(props.optionValue as string);
+                updateFields({ [props.optionValue as string]: isSelected });
+              }}
+            >
+              {Object.entries(KONDISI_OBSTETRI).map(([key, label]) => (
+                <Option key={key} value={key}>{label}</Option>
+              ))}
+            </Dropdown>
+          </div>
+        </div>
+
+        {/* Hemoglobin dipisahkan menjadi Input Angka karena nilainya berupa desimal (g/dL) */}
+        <div className={styles.formRow}>
+          <div className={styles.labelWrapper}><Label>Kadar Hemoglobin (HEMOGLOB)</Label></div>
+          <div className={styles.inputWrapper}>
+            <Input 
+              type="number" 
+              step="0.1"
+              value={data.hemoglob} 
+              onChange={(e) => updateFields({ hemoglob: e.target.value })}
+              placeholder="Contoh: 12.4 (dalam g/dL)" 
+              className={styles.inputField} 
+            />
           </div>
         </div>
       </div>
 
-      {/* --- FORM SECTION: RIWAYAT KEHAMILAN SEBELUMNYA --- */}
       <div className={styles.formSection} style={{ marginTop: '32px' }}>
         <h2 className={styles.sectionTitle}>Riwayat Kehamilan Sebelumnya</h2>
-        <p className={styles.subSectionTitle}>Isi dengan angka 0 jika tidak ada riwayat kendala tersebut.</p>
-
+        
         <div className={styles.formRow}>
-          <div className={styles.labelWrapper}>
-            <Label>Jumlah Kehamilan</Label>
-            <span className={styles.asterisk}>*</span>
-          </div>
+          <div className={styles.labelWrapper}><Label>Jumlah Kehamilan (TOTALP)</Label></div>
           <div className={styles.inputWrapper}>
             <Input 
-              type="number" 
-              min={0} 
-              placeholder="Total kehamilan terdahulu (G)" 
-              className={styles.inputField} 
+              type="number" min={0} 
+              value={data.totalp}
+              onChange={(e) => updateFields({ totalp: e.target.value })}
+              placeholder="Total sebelumnya" className={styles.inputField} 
             />
           </div>
         </div>
 
         <div className={styles.formRow}>
-          <div className={styles.labelWrapper}>
-            <Label>Bayi Lahir Mati</Label>
-          </div>
+          <div className={styles.labelWrapper}><Label>Bayi Lahir Mati (BDEAD)</Label></div>
           <div className={styles.inputWrapper}>
             <Input 
-              type="number" 
-              min={0} 
-              placeholder="Jumlah kasus bayi lahir mati (Stillbirth)" 
-              className={styles.inputField} 
+              type="number" min={0} 
+              value={data.bdead}
+              onChange={(e) => updateFields({ bdead: e.target.value })}
+              placeholder="Jumlah" className={styles.inputField} 
             />
           </div>
         </div>
 
         <div className={styles.formRow}>
-          <div className={styles.labelWrapper}>
-            <Label>Prematur</Label>
-          </div>
+          <div className={styles.labelWrapper}><Label>Prematur (PRETERM)</Label></div>
           <div className={styles.inputWrapper}>
             <Input 
-              type="number" 
-              min={0} 
-              placeholder="Jumlah kelahiran prematur" 
-              className={styles.inputField} 
+              type="number" min={0} 
+              value={data.preterm}
+              onChange={(e) => updateFields({ preterm: e.target.value })}
+              placeholder="Jumlah" className={styles.inputField} 
             />
           </div>
         </div>
 
         <div className={styles.formRow}>
-          <div className={styles.labelWrapper}>
-            <Label>Bayi Meninggal Setelah Lahir</Label>
-          </div>
+          <div className={styles.labelWrapper}><Label>Bayi Meninggal Setelah Lahir (PINFANT)</Label></div>
           <div className={styles.inputWrapper}>
             <Input 
-              type="number" 
-              min={0} 
-              placeholder="Jumlah kasus kematian neonatal" 
-              className={styles.inputField} 
+              type="number" min={0} 
+              value={data.pinfant}
+              onChange={(e) => updateFields({ pinfant: e.target.value })}
+              placeholder="Jumlah" className={styles.inputField} 
             />
           </div>
         </div>
