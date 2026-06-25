@@ -21,6 +21,29 @@ interface StepProps {
 export default function OutcomeKehamilan({ data, updateFields }: StepProps) {
   const styles = useStyles();
 
+  // Helper function untuk menangani perubahan input angka murni
+  const handleNumberChange = (field: keyof AnalysisFormData, value: string) => {
+    let val = value.replace(/[^0-9]/g, ''); // Buang semua selain angka 0-9
+    if (val.length > 1 && val.startsWith('0')) {
+      val = val.replace(/^0+/, ''); // Hapus angka 0 di depan jika ada angka lain
+    }
+    updateFields({ [field]: val } as unknown as Partial<AnalysisFormData>);
+  };
+
+  // Helper function untuk mengunci nilai 0 saat kosong
+  const handleBlur = (field: keyof AnalysisFormData, value: any) => {
+    if (value === '') {
+      updateFields({ [field]: '0' } as unknown as Partial<AnalysisFormData>);
+    }
+  };
+
+  // Helper function untuk memblokir ketikan huruf/simbol
+  const preventInvalidKeys = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (['e', 'E', '+', '-', '.'].includes(e.key)) {
+      e.preventDefault();
+    }
+  };
+
   return (
     <div className={styles.formSection}>
       <h2 className={styles.sectionTitle}>Outcome Kehamilan</h2>
@@ -30,8 +53,11 @@ export default function OutcomeKehamilan({ data, updateFields }: StepProps) {
         <div className={styles.inputWrapper}>
           <Input 
             type="number" 
-            value={data.bweight}
-            onChange={(e) => updateFields({ bweight: e.target.value })}
+            min={0}
+            onKeyDown={preventInvalidKeys}
+            value={data.bweight === '' ? '0' : data.bweight}
+            onChange={(e) => handleNumberChange('bweight', e.target.value)}
+            onBlur={() => handleBlur('bweight', data.bweight)}
             placeholder="Dalam gram (opsional sebelum lahir)" 
             className={styles.inputField} 
           />
@@ -39,7 +65,8 @@ export default function OutcomeKehamilan({ data, updateFields }: StepProps) {
       </div>
 
       <div className={styles.formRow}>
-        <div className={styles.labelWrapper}><Label>Status Bayi (LOUTCOME)</Label></div>
+        {/* PERBAIKAN: Menambahkan indikator required */}
+        <div className={styles.labelWrapper}><Label required>Status Bayi (LOUTCOME)</Label></div>
         <div className={styles.inputWrapper}>
           <Dropdown 
             placeholder="Pilih status kelahiran" 
@@ -54,7 +81,8 @@ export default function OutcomeKehamilan({ data, updateFields }: StepProps) {
       </div>
 
       <div className={styles.formRow}>
-        <div className={styles.labelWrapper}><Label>Jenis Kelamin Bayi (SEX)</Label></div>
+        {/* PERBAIKAN: Menambahkan indikator required */}
+        <div className={styles.labelWrapper}><Label required>Jenis Kelamin Bayi (SEX)</Label></div>
         <div className={styles.inputWrapper}>
           <Dropdown 
             placeholder="Pilih jenis kelamin" 

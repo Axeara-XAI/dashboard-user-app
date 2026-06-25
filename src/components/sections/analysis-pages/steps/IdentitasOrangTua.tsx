@@ -6,7 +6,6 @@ import { AnalysisFormData } from '../../../../type/analysis';
 
 const useStyles = makeStyles({
   formSection: { display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '700px' },
-  // PERBAIKAN: Padding bottom dikembalikan ke 32px agar tidak ada ruang kosong raksasa
   formSectionBottom: { display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '700px', marginTop: '32px', paddingBottom: '32px' },
   sectionTitle: { fontSize: '16px', fontWeight: '600', marginBottom: '8px', color: tokens.colorBrandForeground1, borderBottom: `1px dashed ${tokens.colorNeutralStroke2}`, paddingBottom: '8px' },
   formRow: { display: 'grid', gridTemplateColumns: '260px 1fr', alignItems: 'center', gap: '16px' },
@@ -38,7 +37,7 @@ const EDUCATION_DETAILS: Record<string, { label: string; value: number }[]> = {
   'SMP': [{ label: 'Kelas 7', value: 7 }, { label: 'Kelas 8', value: 8 }, { label: 'Kelas 9', value: 9 }],
   'SMA/SMK': [{ label: 'Kelas 10', value: 10 }, { label: 'Kelas 11', value: 11 }, { label: 'Kelas 12', value: 12 }],
   'Diplomat': [{ label: 'Diplomat 1', value: 13 }, { label: 'Diplomat 2', value: 14 }, { label: 'Diplomat 3', value: 15 }],
-  'Sarjana': [{ label: 'Sarjana S1', value: 16 }, { label: 'Pascasarjana S2', value: 17 }, { label: 'Doktor S3', value: 17 }]
+  'Sarjana': [{ label: 'Sarjana S1', value: 16 }, { label: 'Pascasarjana S2', value: 17 }, { label: 'Doktor S3', value:18 }]
 };
 
 const RACE_OPTIONS = [
@@ -130,7 +129,7 @@ export default function IdentitasOrangTua({ data, updateFields }: StepProps) {
         <h2 className={styles.sectionTitle}>Identitas Ibu</h2>
         
         <div className={styles.formRow}>
-          <div className={styles.labelWrapper}><Label>Nama Ibu</Label></div>
+          <div className={styles.labelWrapper}><Label required>Nama Ibu</Label></div>
           <div className={styles.inputWrapper}>
             <Input 
               value={data.nama_ibu}
@@ -142,12 +141,23 @@ export default function IdentitasOrangTua({ data, updateFields }: StepProps) {
         </div>
         
         <div className={styles.formRow}>
-          <div className={styles.labelWrapper}><Label>Usia Ibu (MAGE)</Label></div>
+          <div className={styles.labelWrapper}><Label required>Usia Ibu (MAGE)</Label></div>
           <div className={styles.inputWrapper}>
             <Input 
               type="number" 
+              min={0}
               value={data.mage}
-              onChange={(e) => updateFields({ mage: e.target.value })}
+              onKeyDown={(e) => {
+                // PERBAIKAN: Cegah input tombol huruf eksponen dan simbol matematika
+                if (['e', 'E', '+', '-', '.'].includes(e.key)) {
+                  e.preventDefault();
+                }
+              }}
+              onChange={(e) => {
+                // PERBAIKAN: Secara paksa hapus semua karakter selain angka (0-9)
+                const numericVal = e.target.value.replace(/[^0-9]/g, '');
+                updateFields({ mage: numericVal });
+              }}
               placeholder="Contoh: 28" 
               className={styles.inputField} 
             />
@@ -155,7 +165,7 @@ export default function IdentitasOrangTua({ data, updateFields }: StepProps) {
         </div>
         
         <div className={styles.formRow}>
-          <div className={styles.labelWrapper}><Label>Pendidikan Ibu (MEDUC)</Label></div>
+          <div className={styles.labelWrapper}><Label required>Pendidikan Ibu (MEDUC)</Label></div>
           <div className={styles.inputWrapper}>
             <div className={styles.educationWrapper}>
               <SearchableDropdown
@@ -183,7 +193,7 @@ export default function IdentitasOrangTua({ data, updateFields }: StepProps) {
         </div>
 
         <div className={styles.formRow}>
-          <div className={styles.labelWrapper}><Label>Ras Ibu (RACEMOM)</Label></div>
+          <div className={styles.labelWrapper}><Label required>Ras Ibu (RACEMOM)</Label></div>
           <div className={styles.inputWrapper}>
             <SearchableDropdown
               placeholder="Pilih Ras"
@@ -196,7 +206,7 @@ export default function IdentitasOrangTua({ data, updateFields }: StepProps) {
         </div>
 
         <div className={styles.formRow}>
-          <div className={styles.labelWrapper}><Label>Etnis Ibu (HISPMOM)</Label></div>
+          <div className={styles.labelWrapper}><Label required>Etnis Ibu (HISPMOM)</Label></div>
           <div className={styles.inputWrapper}>
             <SearchableDropdown
               placeholder="Pilih Etnis (Hispanic)"
@@ -209,7 +219,7 @@ export default function IdentitasOrangTua({ data, updateFields }: StepProps) {
         </div>
 
         <div className={styles.formRow}>
-          <div className={styles.labelWrapper}><Label>Status Perkawinan (MARITAL)</Label></div>
+          <div className={styles.labelWrapper}><Label required>Status Perkawinan (MARITAL)</Label></div>
           <div className={styles.inputWrapper}>
             <SearchableDropdown
               placeholder="Pilih status"
@@ -227,7 +237,7 @@ export default function IdentitasOrangTua({ data, updateFields }: StepProps) {
         <h2 className={styles.sectionTitle}>Identitas Ayah</h2>
         
         <div className={styles.formRow}>
-          <div className={styles.labelWrapper}><Label>Nama Ayah</Label></div>
+          <div className={styles.labelWrapper}><Label required>Nama Ayah</Label></div>
           <div className={styles.inputWrapper}>
             <Input 
               value={data.nama_ayah}
@@ -239,12 +249,23 @@ export default function IdentitasOrangTua({ data, updateFields }: StepProps) {
         </div>
         
         <div className={styles.formRow}>
-          <div className={styles.labelWrapper}><Label>Usia Ayah (FAGE)</Label></div>
+          <div className={styles.labelWrapper}><Label required>Usia Ayah (FAGE)</Label></div>
           <div className={styles.inputWrapper}>
             <Input 
               type="number" 
+              min={0} 
               value={data.fage}
-              onChange={(e) => updateFields({ fage: e.target.value })}
+              onKeyDown={(e) => {
+                // PERBAIKAN: Cegah input tombol huruf eksponen dan simbol matematika
+                if (['e', 'E', '+', '-', '.'].includes(e.key)) {
+                  e.preventDefault();
+                }
+              }}
+              onChange={(e) => {
+                // PERBAIKAN: Secara paksa hapus semua karakter selain angka (0-9)
+                const numericVal = e.target.value.replace(/[^0-9]/g, '');
+                updateFields({ fage: numericVal });
+              }}
               placeholder="Contoh: 30" 
               className={styles.inputField} 
             />
@@ -252,7 +273,7 @@ export default function IdentitasOrangTua({ data, updateFields }: StepProps) {
         </div>
         
         <div className={styles.formRow}>
-          <div className={styles.labelWrapper}><Label>Pendidikan Ayah (FEDUC)</Label></div>
+          <div className={styles.labelWrapper}><Label required>Pendidikan Ayah (FEDUC)</Label></div>
           <div className={styles.inputWrapper}>
             <div className={styles.educationWrapper}>
               <SearchableDropdown
@@ -280,7 +301,7 @@ export default function IdentitasOrangTua({ data, updateFields }: StepProps) {
         </div>
 
         <div className={styles.formRow}>
-          <div className={styles.labelWrapper}><Label>Ras Ayah (RACEDAD)</Label></div>
+          <div className={styles.labelWrapper}><Label required>Ras Ayah (RACEDAD)</Label></div>
           <div className={styles.inputWrapper}>
             <SearchableDropdown
               placeholder="Pilih Ras"
@@ -293,7 +314,7 @@ export default function IdentitasOrangTua({ data, updateFields }: StepProps) {
         </div>
 
         <div className={styles.formRow}>
-          <div className={styles.labelWrapper}><Label>Etnis Ayah (HISPDAD)</Label></div>
+          <div className={styles.labelWrapper}><Label required>Etnis Ayah (HISPDAD)</Label></div>
           <div className={styles.inputWrapper}>
             <SearchableDropdown
               placeholder="Pilih Etnis (Hispanic)"

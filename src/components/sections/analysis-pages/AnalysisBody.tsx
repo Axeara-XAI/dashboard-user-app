@@ -107,7 +107,7 @@ const STEP_LIST = [
 export default function AnalysisBody({ currentStep, setCurrentStep }: AnalysisBodyProps) {
   const styles = useStyles();
 
-const [formData, setFormData] = useState<AnalysisFormData>({
+  const [formData, setFormData] = useState<AnalysisFormData>({
     // Langkah 1: Identitas Orang Tua
     nama_ibu: '', 
     mage: '', 
@@ -134,28 +134,29 @@ const [formData, setFormData] = useState<AnalysisFormData>({
     ginjal: false, 
     herpes: false, 
     hydram: false, 
-    hemoglob: '', 
+    rhsen: false, // PERBAIKAN: rhsen sekarang didaftarkan di sini
+    hemoglob: '0', 
     cervix: false, 
     uterine: false,
-    totalp: '', 
-    bdead: '', 
-    preterm: '', 
-    pinfant: '',
+    totalp: '0', 
+    bdead: '0', 
+    preterm: '0', 
+    pinfant: '0',
     
     // Langkah 3: Data Kehamilan Saat Ini
-    weeks: '', 
-    gained: '', 
-    visits: '', 
-    cignum: '', 
-    drinknum: '',
+    weeks: '0', 
+    gained: '0', 
+    visits: '0', 
+    cignum: '0', 
+    drinknum: '0',
     
     // Langkah 4: Outcome Kehamilan
-    bweight: '', 
-    loutcome: '', 
-    sex: ''
+    bweight: '0', 
+    loutcome: '', // Wajib diisi
+    sex: ''       // Wajib diisi
   });
 
-  // 2. State untuk menangani Data AI dan Proses Penyimpanan
+  // State untuk menangani Data AI dan Proses Penyimpanan
   const [apiData, setApiData] = useState<any>(null); 
   const [isSaving, setIsSaving] = useState(false);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
@@ -164,12 +165,68 @@ const [formData, setFormData] = useState<AnalysisFormData>({
     message: '' 
   });
 
-  // 3. Fungsi untuk mengupdate field form secara dinamis
+  // Fungsi untuk mengupdate field form secara dinamis
   const updateFields = (fields: Partial<AnalysisFormData>) => {
     setFormData(prev => ({ ...prev, ...fields }));
   };
 
-  // 4. Fungsi Utama untuk Menyimpan Data ke DB
+  // ==========================================================================
+  // VALIDASI SEBELUM PINDAH LANGKAH
+  // ==========================================================================
+  const handleStepNavigation = (value: number | ((prev: number) => number)) => {
+    const targetStep = typeof value === 'function' ? value(currentStep) : value;
+
+    // HANYA LAKUKAN VALIDASI JIKA USER MENCOBA MAJU KE LANGKAH BERIKUTNYA
+    if (targetStep > currentStep) {
+      
+      // Validasi Langkah 1 (Identitas Orang Tua)
+      if (currentStep === 1) {
+        const { 
+          nama_ibu, mage, meduc_cat, racemom, hispmom, marital, 
+          nama_ayah, fage, feduc_cat, racedad, hispdad 
+        } = formData;
+
+        if (!nama_ibu || mage === '' || !meduc_cat || !racemom || !hispmom || !marital || 
+            !nama_ayah || fage === '' || !feduc_cat || !racedad || !hispdad) {
+          setAlertConfig({ 
+            type: 'warning', 
+            message: 'Harap lengkapi seluruh bidang wajib (*) pada Identitas Orang Tua sebelum melanjutkan.' 
+          });
+          setIsAlertOpen(true);
+          return; 
+        }
+
+        if (Number(mage) < 0 || Number(fage) < 0) {
+          setAlertConfig({ 
+            type: 'warning', 
+            message: 'Usia Ibu (MAGE) dan Usia Ayah (FAGE) tidak boleh bernilai negatif.' 
+          });
+          setIsAlertOpen(true);
+          return; 
+        }
+      }
+
+      // Validasi Langkah 4 (Outcome Kehamilan)
+      if (currentStep === 4) {
+        const { loutcome, sex } = formData;
+        
+        // Blokir jika Status Bayi atau Jenis Kelamin belum dipilih
+        if (!loutcome || !sex) {
+          setAlertConfig({ 
+            type: 'warning', 
+            message: 'Harap pilih Status Bayi (LOUTCOME) dan Jenis Kelamin Bayi (SEX) sebelum melihat Hasil Analisis.' 
+          });
+          setIsAlertOpen(true);
+          return; 
+        }
+      }
+    }
+
+    // Jika validasi lolos (atau mundur langkah), izinkan pindah
+    setCurrentStep(targetStep);
+  };
+
+  // Fungsi Utama untuk Menyimpan Data ke DB
   const handleSaveData = async () => {
     if (!apiData) {
       setAlertConfig({ type: 'warning', message: 'Data analisis belum selesai dimuat. Silakan tunggu sebentar.' });
@@ -213,7 +270,7 @@ const [formData, setFormData] = useState<AnalysisFormData>({
             <div 
               key={stepNumber} 
               className={`${styles.stepItem} ${isActive ? styles.stepItemActive : ''}`}
-              onClick={() => setCurrentStep(stepNumber)}
+              onClick={() => handleStepNavigation(stepNumber)}
             >
               <div className={`${styles.stepCircle} ${isActive ? styles.stepCircleActive : ''}`}>
                 {stepNumber}
@@ -239,15 +296,12 @@ const [formData, setFormData] = useState<AnalysisFormData>({
       {currentStep === 2 && <RiwayatKesehatanIbu data={formData} updateFields={updateFields} />}
       {currentStep === 3 && <DataKehamilan data={formData} updateFields={updateFields} />}
       {currentStep === 4 && <OutcomeKehamilan data={formData} updateFields={updateFields} />}
-      
-      {/* Lempar setApiData ke HasilAnalisis agar data AI bisa disimpan di state parent ini */}
       {currentStep === 5 && <HasilAnalisis formData={formData} onApiDataLoaded={setApiData} />}
 
       {/* --- FOOTER DI RENDER DI SINI --- */}
-      {/* Footer memiliki akses langsung ke currentStep, navigasi, dan fungsi simpan */}
       <AnalysisFooter 
         currentStep={currentStep} 
-        setCurrentStep={setCurrentStep} 
+        setCurrentStep={handleStepNavigation} 
         onSave={handleSaveData} 
         isSaving={isSaving} 
       />

@@ -21,6 +21,29 @@ interface StepProps {
 export default function DataKehamilan({ data, updateFields }: StepProps) {
   const styles = useStyles();
 
+  // Helper function untuk menangani perubahan input angka murni
+  const handleNumberChange = (field: keyof AnalysisFormData, value: string) => {
+    let val = value.replace(/[^0-9]/g, ''); // Buang semua selain angka 0-9
+    if (val.length > 1 && val.startsWith('0')) {
+      val = val.replace(/^0+/, ''); // Hapus angka 0 di depan jika ada angka lain (misal "05" jadi "5")
+    }
+    updateFields({ [field]: val } as unknown as Partial<AnalysisFormData>);
+  };
+
+  // Helper function untuk mengunci nilai 0 saat kosong
+  const handleBlur = (field: keyof AnalysisFormData, value: any) => {
+    if (value === '') {
+      updateFields({ [field]: '0' } as unknown as Partial<AnalysisFormData>);
+    }
+  };
+
+  // Helper function untuk memblokir ketikan huruf/simbol
+  const preventInvalidKeys = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (['e', 'E', '+', '-', '.'].includes(e.key)) {
+      e.preventDefault();
+    }
+  };
+
   return (
     <>
       <div className={styles.formSection}>
@@ -31,8 +54,11 @@ export default function DataKehamilan({ data, updateFields }: StepProps) {
           <div className={styles.inputWrapper}>
             <Input 
               type="number" 
-              value={data.weeks}
-              onChange={(e) => updateFields({ weeks: e.target.value })}
+              min={0}
+              onKeyDown={preventInvalidKeys}
+              value={data.weeks === '' ? '0' : data.weeks}
+              onChange={(e) => handleNumberChange('weeks', e.target.value)}
+              onBlur={() => handleBlur('weeks', data.weeks)}
               placeholder="Dalam minggu" 
               className={styles.inputField} 
             />
@@ -44,8 +70,11 @@ export default function DataKehamilan({ data, updateFields }: StepProps) {
           <div className={styles.inputWrapper}>
             <Input 
               type="number" 
-              value={data.gained}
-              onChange={(e) => updateFields({ gained: e.target.value })}
+              min={0}
+              onKeyDown={preventInvalidKeys}
+              value={data.gained === '' ? '0' : data.gained}
+              onChange={(e) => handleNumberChange('gained', e.target.value)}
+              onBlur={() => handleBlur('gained', data.gained)}
               placeholder="Dalam kg" 
               className={styles.inputField} 
             />
@@ -57,8 +86,11 @@ export default function DataKehamilan({ data, updateFields }: StepProps) {
           <div className={styles.inputWrapper}>
             <Input 
               type="number" 
-              value={data.visits}
-              onChange={(e) => updateFields({ visits: e.target.value })}
+              min={0}
+              onKeyDown={preventInvalidKeys}
+              value={data.visits === '' ? '0' : data.visits}
+              onChange={(e) => handleNumberChange('visits', e.target.value)}
+              onBlur={() => handleBlur('visits', data.visits)}
               placeholder="Jumlah kunjungan" 
               className={styles.inputField} 
             />
@@ -74,8 +106,11 @@ export default function DataKehamilan({ data, updateFields }: StepProps) {
           <div className={styles.inputWrapper}>
             <Input 
               type="number" 
-              value={data.cignum}
-              onChange={(e) => updateFields({ cignum: e.target.value })}
+              min={0}
+              onKeyDown={preventInvalidKeys}
+              value={data.cignum === '' ? '0' : data.cignum}
+              onChange={(e) => handleNumberChange('cignum', e.target.value)}
+              onBlur={() => handleBlur('cignum', data.cignum)}
               placeholder="Jumlah rokok per hari" 
               className={styles.inputField} 
             />
@@ -87,8 +122,11 @@ export default function DataKehamilan({ data, updateFields }: StepProps) {
           <div className={styles.inputWrapper}>
             <Input 
               type="number" 
-              value={data.drinknum}
-              onChange={(e) => updateFields({ drinknum: e.target.value })}
+              min={0}
+              onKeyDown={preventInvalidKeys}
+              value={data.drinknum === '' ? '0' : data.drinknum}
+              onChange={(e) => handleNumberChange('drinknum', e.target.value)}
+              onBlur={() => handleBlur('drinknum', data.drinknum)}
               placeholder="Jumlah minuman per minggu" 
               className={styles.inputField} 
             />

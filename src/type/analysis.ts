@@ -25,6 +25,7 @@ export interface AnalysisFormData {
   ginjal: boolean;                 
   herpes: boolean;
   hydram: boolean;
+  rhsen: boolean;
   hemoglob: string;
   cervix: boolean;
   uterine: boolean;

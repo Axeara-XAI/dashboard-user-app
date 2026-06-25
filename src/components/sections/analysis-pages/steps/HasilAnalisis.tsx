@@ -52,13 +52,11 @@ const mapEducationToAiScale = (uiValue: number): number => {
   return 1;
 };
 
-// 1. PENYESUAIAN: Tambahkan onApiDataLoaded di sini
 interface StepProps {
   formData: AnalysisFormData;
   onApiDataLoaded?: (data: any) => void; 
 }
 
-// 2. PENYESUAIAN: Ekstrak prop onApiDataLoaded di sini
 export default function HasilAnalisis({ formData, onApiDataLoaded }: StepProps) {
   const styles = useStyles();
   
@@ -75,44 +73,55 @@ export default function HasilAnalisis({ formData, onApiDataLoaded }: StepProps) 
 
     const fetchAnalysis = async () => {
       try {
-        // 1. Siapkan Payload JSON sesuai standar Azure
+        // Cek nilai Hemoglobin, paksa ke 12.0 jika di luar batas 4.0 - 20.0
+        let hbValue = parseFloat(formData.hemoglob);
+        if (isNaN(hbValue) || hbValue < 4.0 || hbValue > 20.0) {
+          hbValue = 12.0; 
+        }
+
         const payload = {
-          MAGE: Number(formData.mage) || 0,
-          FAGE: Number(formData.fage) || 0,
-          MEDUC: mapEducationToAiScale(formData.meduc_raw),
-          FEDUC: mapEducationToAiScale(formData.feduc_raw),
+          // Data Demografi & Obstetri Umum
+          SEX: Number(formData.sex) || 1,
           MARITAL: Number(formData.marital) || 1,
+          FAGE: Number(formData.fage) || 0,
+          GAINED: parseFloat(formData.gained) || 0.0,
+          VISITS: Number(formData.visits) || 0,
+          MAGE: Number(formData.mage) || 0,
+          FEDUC: mapEducationToAiScale(formData.feduc_raw),
+          MEDUC: mapEducationToAiScale(formData.meduc_raw),
+          TOTALP: Number(formData.totalp) || 0,
+          BDEAD: Number(formData.bdead) || 0,
+          TERMS: 0,
+          LOUTCOME: Number(formData.loutcome) || 1,
+          WEEKS: Number(formData.weeks) || 0,
           RACEMOM: Number(formData.racemom) || 0,
           RACEDAD: Number(formData.racedad) || 0,
-          HISPMOM: formData.hispmom === 'N' ? 0 : 1,
+          HISPMOM: formData.hispmom === 'N' ? 0 : 1, 
           HISPDAD: formData.hispdad === 'N' ? 0 : 1,
           CIGNUM: Number(formData.cignum) || 0,
           DRINKNUM: Number(formData.drinknum) || 0,
-          GAINED: parseFloat(formData.gained) || 0,
+          PINFANT: Number(formData.pinfant) || 0,
+          PRETERM: Number(formData.preterm) || 0,
+          HYDRAM: formData.hydram ? 1 : 0,
+          HEMOGLOB: hbValue,
+
+          // Variabel Medis Bahasa Indonesia (Sesuai validasi Pydantic dari backend)
           anemia: formData.anemia ? 1 : 0,
           jantung: formData.jantung ? 1 : 0,
           paru: formData.paru ? 1 : 0,
           diabetes: formData.diabetes ? 1 : 0,
           herpes: formData.herpes ? 1 : 0,
-          ginjal: 0, // Default aman karena tidak ada di form UI
+          ginjal: formData.ginjal ? 1 : 0, 
           hipertensi_kronis: formData.hipertensi_kronis ? 1 : 0,
           hipertensi_gestasional: formData.hipertensi_gestasional ? 1 : 0,
           eklamsia: formData.eklamsia ? 1 : 0,
           serviks: formData.cervix ? 1 : 0,
           rahim: formData.uterine ? 1 : 0,
-          HYDRAM: formData.hydram ? 1 : 0,
-          HEMOGLOB: parseFloat(formData.hemoglob) || 12.0,
-          RHSEN: 0,
-          LOUTCOME: Number(formData.loutcome) || 1,
-          VISITS: Number(formData.visits) || 0,
-          TOTALP: Number(formData.totalp) || 0,
-          BDEAD: Number(formData.bdead) || 0,
-          TERMS: 1,
-          PRETERM: Number(formData.preterm) || 0,
-          PINFANT: Number(formData.pinfant) || 0,
+
+          // PERBAIKAN: Baca nilai rhsen dari form (1 jika true, 0 jika false)
+          RHSEN: formData.rhsen ? 1 : 0
         };
 
-        // 2. Tembak ke URL Azure App Service
         const response = await fetch('https://axara-models-erdkdzd8a2bwhba8.southeastasia-01.azurewebsites.net/api/analyze', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -120,13 +129,14 @@ export default function HasilAnalisis({ formData, onApiDataLoaded }: StepProps) 
         });
 
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          const errorDetail = await response.text();
+          console.error("DETAIL ERROR API:", errorDetail);
+          throw new Error(`Gagal (Status ${response.status}). Cek console browser untuk detailnya.`);
         }
 
         const data = await response.json();
         setApiData(data);
         
-        // 3. PENYESUAIAN: Lempar data ke atas (ke AnalysisBody) agar bisa disimpan
         if (onApiDataLoaded) {
           onApiDataLoaded(data);
         }
@@ -151,7 +161,7 @@ export default function HasilAnalisis({ formData, onApiDataLoaded }: StepProps) 
             Sistem AI Sedang Menganalisis...
           </Text>
           <Text size={300} style={{ color: tokens.colorNeutralForeground2 }}>
-            Harap tunggu. Komputasi matriks SHAP dan penyusunan narasi medis oleh Gemini dapat memakan waktu 1 hingga 2 menit.
+            Harap tunggu. Komputasi matriks SHAP dan penyusunan narasi medis oleh AI dapat memakan waktu beberapa detik.
           </Text>
         </div>
       </div>
@@ -163,7 +173,7 @@ export default function HasilAnalisis({ formData, onApiDataLoaded }: StepProps) 
     return (
       <div className={styles.loadingContainer} style={{ borderColor: tokens.colorPaletteRedBorder2 }}>
         <Text size={500} weight="bold" style={{ color: tokens.colorPaletteRedForeground1 }}>Analisis Gagal</Text>
-        <Text>{error || 'Terjadi kesalahan pada data balasan.'}</Text>
+        <Text>{error || 'Terjadi kesalahan saat memproses data.'}</Text>
       </div>
     );
   }
@@ -211,53 +221,74 @@ export default function HasilAnalisis({ formData, onApiDataLoaded }: StepProps) 
         </Card>
       </div>
 
-      {/* BOX 2: NARASI GEMINI */}
-      {narrative?.narrative_available && (
+      {/* BOX 2: NARASI GEMINI (PERBAIKAN KONDISI RENDER) */}
+      {narrative && (
         <>
-          <div>
-            <Text size={400} weight="semibold" block style={{ marginBottom: '8px' }}>
-              Eksplanasi Klinis Medis (AI Generated)
-            </Text>
-            <div className={styles.narrativeBox}>
-              <Text size={300}>{narrative.explanation}</Text>
-            </div>
-          </div>
-
-          <div>
-            <Text size={400} weight="semibold" block style={{ marginBottom: '8px' }}>
-              Rekomendasi Tindakan Medis
-            </Text>
-            <div className={styles.recommendationBox}>
-              <Text size={300} style={{ color: tokens.colorPaletteGreenForeground3 }}>
-                {narrative.recommendation}
+          {/* Tangani jika backend mengirim narasi sebagai teks biasa (string) */}
+          {typeof narrative === 'string' ? (
+            <div style={{ marginBottom: '16px' }}>
+              <Text size={400} weight="semibold" block style={{ marginBottom: '8px' }}>
+                Eksplanasi Klinis Medis (AI Generated)
               </Text>
+              <div className={styles.narrativeBox}>
+                <Text size={300}>{narrative}</Text>
+              </div>
             </div>
-          </div>
+          ) : (
+            /* Tangani jika backend mengirim narasi sebagai objek (ada explanation & recommendation) */
+            <>
+              {narrative.explanation && (
+                <div style={{ marginBottom: '16px' }}>
+                  <Text size={400} weight="semibold" block style={{ marginBottom: '8px' }}>
+                    Eksplanasi Klinis Medis (AI Generated)
+                  </Text>
+                  <div className={styles.narrativeBox}>
+                    <Text size={300}>{narrative.explanation}</Text>
+                  </div>
+                </div>
+              )}
+
+              {narrative.recommendation && (
+                <div style={{ marginBottom: '16px' }}>
+                  <Text size={400} weight="semibold" block style={{ marginBottom: '8px' }}>
+                    Rekomendasi Tindakan Medis
+                  </Text>
+                  <div className={styles.recommendationBox}>
+                    <Text size={300} style={{ color: tokens.colorPaletteGreenForeground3 }}>
+                      {narrative.recommendation}
+                    </Text>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
         </>
       )}
 
       {/* BOX 3: SHAP FEATURES */}
-      <div>
-        <Text size={400} weight="semibold" block>Faktor Pengaruh Klinis Teratas (SHAP)</Text>
-        <div className={styles.featureList}>
-          {xai.shap.top_features.slice(0, 5).map((feat: any) => {
-            const isDecreasing = feat.direction === 'decreases_risk';
-            return (
-              <div key={feat.rank} className={styles.featureItem}>
-                <div className={styles.featureInfo}>
-                  <Text weight="semibold">{feat.description}</Text>
-                  <Text size={100} style={{ color: tokens.colorNeutralForeground3 }}>
-                    Nilai Pasien: <b>{feat.value}</b>
-                  </Text>
+      {xai?.shap?.top_features && (
+        <div>
+          <Text size={400} weight="semibold" block>Faktor Pengaruh Klinis Teratas (SHAP)</Text>
+          <div className={styles.featureList}>
+            {xai.shap.top_features.slice(0, 5).map((feat: any, index: number) => {
+              const isDecreasing = feat.direction === 'decreases_risk';
+              return (
+                <div key={feat.rank || index} className={styles.featureItem}>
+                  <div className={styles.featureInfo}>
+                    <Text weight="semibold">{feat.description || feat.feature}</Text>
+                    <Text size={100} style={{ color: tokens.colorNeutralForeground3 }}>
+                      Nilai Pasien: <b>{feat.value}</b>
+                    </Text>
+                  </div>
+                  <Badge color={isDecreasing ? 'success' : 'important'} appearance="tint">
+                    {isDecreasing ? 'Menurunkan Risiko' : 'Meningkatkan Risiko'}
+                  </Badge>
                 </div>
-                <Badge color={isDecreasing ? 'success' : 'important'} appearance="tint">
-                  {isDecreasing ? 'Menurunkan Risiko' : 'Meningkatkan Risiko'}
-                </Badge>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
     </div>
   );

@@ -2,8 +2,8 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { makeStyles, tokens, Button } from '@fluentui/react-components';
-import { MoreHorizontal20Regular, Dismiss24Regular } from '@fluentui/react-icons';
+import { makeStyles, tokens, Button, Link } from '@fluentui/react-components';
+import { Dismiss24Regular } from '@fluentui/react-icons'; 
 
 // Import komponen AlertModal dari folder UI
 import AlertModal from '../../ui/AlertModal';
@@ -12,8 +12,6 @@ import AlertModal from '../../ui/AlertModal';
 // INTERFACE PROPS
 // ============================================================================
 interface AnalysisHeaderProps {
-  // Properti ini nantinya dikirim dari parent (page.tsx) untuk memberi tahu 
-  // apakah pengguna sudah mengetik sesuatu di form atau belum.
   isFormDirty?: boolean; 
 }
 
@@ -34,6 +32,15 @@ const useStyles = makeStyles({
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
+  },
+  breadcrumbLink: {
+    color: tokens.colorNeutralForeground2,
+    cursor: 'pointer',
+    textDecoration: 'none',
+    ':hover': {
+      color: tokens.colorBrandForeground1,
+      textDecoration: 'underline',
+    },
   },
   titleRow: {
     display: 'flex',
@@ -62,7 +69,7 @@ export default function AnalysisHeader({ isFormDirty = false }: AnalysisHeaderPr
   // State untuk mengontrol kemunculan Alert Modal
   const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
 
-  // Fungsi evaluasi saat tombol X diklik
+  // Fungsi evaluasi saat navigasi keluar diklik (berlaku untuk tombol X dan Beranda)
   const handleCloseClick = () => {
     if (isFormDirty) {
       // Jika form sudah diisi sebagian, tampilkan peringatan
@@ -85,7 +92,10 @@ export default function AnalysisHeader({ isFormDirty = false }: AnalysisHeaderPr
         
         {/* --- BREADCRUMB SECTION --- */}
         <div className={styles.breadcrumb}>
-          <span>Beranda</span>
+          {/* PERBAIKAN: Beranda sekarang memanggil handleCloseClick agar memicu Alert jika form kotor */}
+          <Link className={styles.breadcrumbLink} onClick={handleCloseClick}>
+            Beranda
+          </Link>
           <span>&gt;</span>
           <span>Analysis</span>
         </div>
@@ -94,14 +104,8 @@ export default function AnalysisHeader({ isFormDirty = false }: AnalysisHeaderPr
         <div className={styles.titleRow}>
           <div className={styles.titleLeft}>
             <h1 className={styles.titleText}>Buat Laporan Analisis</h1>
-            <Button 
-              appearance="subtle" 
-              icon={<MoreHorizontal20Regular />} 
-              aria-label="More options" 
-            />
           </div>
           
-          {/* Tombol Close [X] sekarang menjalankan fungsi handleCloseClick */}
           <Button 
             appearance="subtle" 
             icon={<Dismiss24Regular />} 
