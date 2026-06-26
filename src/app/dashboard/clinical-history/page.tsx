@@ -1,81 +1,180 @@
 'use client';
 
-import React, { useState } from 'react';
-import { makeStyles, tokens, Button } from '@fluentui/react-components';
+import React, { useState, useEffect, useCallback } from 'react';
+import { makeStyles, tokens, Button, Spinner, Text } from '@fluentui/react-components';
 import { ArrowLeftRegular } from '@fluentui/react-icons';
-import { 
-  HistoryHeader, 
-  AssessmentList, 
+import {
+  HistoryHeader,
+  AssessmentList,
   AssessmentRecord,
   PatientDirectory,
-  PatientContainer
+  PatientContainer,
 } from '../../../components/sections/clinical-history-pages/clinical-history-pages';
 
 const useStyles = makeStyles({
   pageContainer: {
-    // PERBAIKAN: Padding bawah di-set ke 0px agar footer bisa mentok ke dasar layar
-    // Format: Atas (24px) | Kanan (32px) | Bawah (0px) | Kiri (32px)
-    padding: '24px 32px 0px 32px', 
+    padding: '24px 32px 0px 32px',
     width: '100%',
     boxSizing: 'border-box',
-    
-    // PERBAIKAN FLEXBOX: Mengubah container menjadi flex agar komponen anak bisa "melar"
     display: 'flex',
     flexDirection: 'column',
-    minHeight: 'calc(100vh - 56px)', // Mengurangi estimasi tinggi Navbar
-    
+    minHeight: 'calc(100vh - 56px)',
     backgroundColor: tokens.colorNeutralBackground1,
   },
   backButton: {
     marginBottom: '24px',
-  }
+  },
+  centerContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
+    gap: '16px',
+    padding: '60px 0',
+  },
 });
 
-// --- DATA DUMMY ---
-const DUMMY_PATIENTS: PatientContainer[] = [
-  { id: '1', name: 'Siti Aminah', mrn: 'RM-2026-00142', dob: '12 Maret 1996 (30 Tahun)', lastVisit: '25 Juni 2026' },
-  { id: '2', name: 'Rina Melati', mrn: 'RM-2026-00188', dob: '05 Agustus 1998 (27 Tahun)', lastVisit: '10 Mei 2026' },
-  { id: '3', name: 'Dewi Lestari', mrn: 'RM-2026-00201', dob: '22 Januari 1994 (32 Tahun)', lastVisit: '01 Juni 2026' },
-  { id: '4', name: 'Ayu Wandira', mrn: 'RM-2026-00215', dob: '17 November 1999 (26 Tahun)', lastVisit: '15 Juni 2026' },
-];
+// ============================================================================
+// HELPERS: Mapping data API → tipe PatientContainer & AssessmentRecord
+// ============================================================================
+function mapToPatientContainer(raw: any): PatientContainer {
+  // Hitung umur dari dateOfBirth jika tersedia
+  const dob = raw.dateOfBirth || '1990-01-01';
+  const age = new Date().getFullYear() - new Date(dob).getFullYear();
+  const formattedDob = new Date(dob).toLocaleDateString('id-ID', {
+    day: 'numeric', month: 'long', year: 'numeric'
+  });
 
-const DUMMY_HISTORY: AssessmentRecord[] = [
-  {
-    id: 2,
-    date: '25 Juni 2026',
-    probability: 65.5,
-    riskLabel: 'FGR',
-    narrative: 'Berdasarkan analisis model AI, pasien memiliki risiko tinggi (65.5%) mengalami Fetal Growth Restriction (FGR). Faktor utama yang berkontribusi adalah riwayat tekanan darah (Hipertensi Gestasional) dan pertambahan berat badan ibu yang kurang optimal di trimester ini. Disarankan pemantauan USG Doppler secara intensif.',
-  },
-  {
-    id: 1,
-    date: '10 April 2026',
-    probability: 22.1,
-    riskLabel: 'Non-FGR',
-    narrative: 'Kondisi janin dan ibu dalam batas normal. Probabilitas FGR sangat rendah (22.1%). Faktor pelindung terdeteksi dari tingkat kadar Hemoglobin yang stabil (12.4 g/dL) serta frekuensi kunjungan prenatal yang teratur. Lanjutkan asupan nutrisi seperti biasa.',
-  }
-];
+  // Format tanggal kunjungan terakhir dari createdAt
+  const lastVisit = raw.createdAt
+    ? new Date(raw.createdAt).toLocaleDateString('id-ID', {
+        day: 'numeric', month: 'long', year: 'numeric',
+      })
+    : '-';
 
+  return {
+    id: String(raw.id),
+    name: raw.patientName,
+    mrn: raw.medicalRecordNumber,
+    dob: `${formattedDob} (${age} Tahun)`,
+    lastVisit,
+  };
+}
+
+function mapToAssessmentRecord(raw: any): AssessmentRecord {
+  const date = raw.createdAt
+    ? new Date(raw.createdAt).toLocaleDateString('id-ID', {
+        day: 'numeric', month: 'long', year: 'numeric',
+      })
+    : '-';
+
+  return {
+    id: raw.assessmentId,
+    date,
+    probability: Math.round((raw.probability ?? 0) * 100),
+    riskLabel: raw.riskLabel ?? 'Unknown',
+    narrative: raw.narrativeExplanation ?? 'Narasi tidak tersedia.',
+  };
+}
+
+// ============================================================================
+// MAIN PAGE COMPONENT
+// ============================================================================
 export default function ClinicalHistoryPage() {
   const styles = useStyles();
-  
+
   const [selectedPatient, setSelectedPatient] = useState<PatientContainer | null>(null);
+
+  // State untuk daftar pasien
+  const [patients, setPatients] = useState<PatientContainer[]>([]);
+  const [isPatientsLoading, setIsPatientsLoading] = useState(true);
+  const [patientsError, setPatientsError] = useState<string | null>(null);
+
+  // State untuk riwayat asesmen pasien yang dipilih
+  const [assessments, setAssessments] = useState<AssessmentRecord[]>([]);
+  const [isAssessmentsLoading, setIsAssessmentsLoading] = useState(false);
+  const [assessmentsError, setAssessmentsError] = useState<string | null>(null);
+
+  // Fetch daftar semua pasien saat komponen pertama kali dimuat
+  useEffect(() => {
+    const fetchPatients = async () => {
+      setIsPatientsLoading(true);
+      setPatientsError(null);
+      try {
+        const res = await fetch('/api/get-patients');
+        const json = await res.json();
+        if (!json.success) throw new Error(json.message);
+        setPatients(json.data.map(mapToPatientContainer));
+      } catch (err: any) {
+        setPatientsError(err.message || 'Gagal memuat daftar pasien.');
+      } finally {
+        setIsPatientsLoading(false);
+      }
+    };
+
+    fetchPatients();
+  }, []);
+
+  // Fetch riwayat asesmen saat pasien dipilih
+  const handleSelectPatient = useCallback(async (patient: PatientContainer) => {
+    setSelectedPatient(patient);
+    setAssessments([]);
+    setIsAssessmentsLoading(true);
+    setAssessmentsError(null);
+
+    try {
+      const res = await fetch(`/api/get-assessments/${patient.id}`);
+      const json = await res.json();
+      if (!json.success) throw new Error(json.message);
+      setAssessments(json.data.map(mapToAssessmentRecord));
+    } catch (err: any) {
+      setAssessmentsError(err.message || 'Gagal memuat riwayat asesmen.');
+    } finally {
+      setIsAssessmentsLoading(false);
+    }
+  }, []);
 
   return (
     <div className={styles.pageContainer}>
-      
+
+      {/* ============================================================ */}
+      {/* PANEL KIRI: DAFTAR PASIEN                                    */}
+      {/* ============================================================ */}
       {!selectedPatient && (
-        <PatientDirectory 
-          patients={DUMMY_PATIENTS} 
-          onSelectPatient={(patient) => setSelectedPatient(patient)} 
-        />
+        <>
+          {isPatientsLoading && (
+            <div className={styles.centerContainer}>
+              <Spinner size="large" label="Memuat daftar pasien dari database..." />
+            </div>
+          )}
+
+          {patientsError && !isPatientsLoading && (
+            <div className={styles.centerContainer}>
+              <Text style={{ color: tokens.colorPaletteRedForeground1 }}>
+                ⚠️ {patientsError}
+              </Text>
+              <Button onClick={() => window.location.reload()}>Coba Lagi</Button>
+            </div>
+          )}
+
+          {!isPatientsLoading && !patientsError && (
+            <PatientDirectory
+              patients={patients}
+              onSelectPatient={handleSelectPatient}
+            />
+          )}
+        </>
       )}
 
+      {/* ============================================================ */}
+      {/* PANEL KANAN: DETAIL PASIEN + RIWAYAT ASESMEN                 */}
+      {/* ============================================================ */}
       {selectedPatient && (
         <>
-          <Button 
-            appearance="subtle" 
-            icon={<ArrowLeftRegular />} 
+          <Button
+            appearance="subtle"
+            icon={<ArrowLeftRegular />}
             onClick={() => setSelectedPatient(null)}
             className={styles.backButton}
           >
@@ -83,8 +182,32 @@ export default function ClinicalHistoryPage() {
           </Button>
 
           <HistoryHeader patient={selectedPatient} />
-          
-          <AssessmentList assessments={DUMMY_HISTORY} />
+
+          {isAssessmentsLoading && (
+            <div className={styles.centerContainer}>
+              <Spinner size="medium" label="Memuat riwayat pemeriksaan..." />
+            </div>
+          )}
+
+          {assessmentsError && !isAssessmentsLoading && (
+            <div className={styles.centerContainer}>
+              <Text style={{ color: tokens.colorPaletteRedForeground1 }}>
+                ⚠️ {assessmentsError}
+              </Text>
+            </div>
+          )}
+
+          {!isAssessmentsLoading && !assessmentsError && assessments.length === 0 && (
+            <div className={styles.centerContainer}>
+              <Text style={{ color: tokens.colorNeutralForeground3 }}>
+                Belum ada riwayat pemeriksaan untuk pasien ini.
+              </Text>
+            </div>
+          )}
+
+          {!isAssessmentsLoading && !assessmentsError && assessments.length > 0 && (
+            <AssessmentList assessments={assessments} />
+          )}
         </>
       )}
 
