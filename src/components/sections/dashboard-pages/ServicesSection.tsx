@@ -20,11 +20,12 @@ const useStyles = makeStyles({
     flexDirection: 'column',
     gap: '16px',
     marginBottom: '32px',
-    // PERBAIKAN: Menambahkan padding yang sebelumnya dihapus dari layout global
-    // Format: Atas (24px) | Kanan (32px) | Bawah (0px) | Kiri (32px)
     padding: '24px 32px 0 32px',
     width: '100%',
-    boxSizing: 'border-box', // Mencegah padding menambah total lebar layar
+    boxSizing: 'border-box',
+    '@media (max-width: 768px)': {
+      padding: '16px 16px 0 16px',
+    },
   },
   sectionTitle: {
     fontSize: '20px',
@@ -33,15 +34,19 @@ const useStyles = makeStyles({
   },
   grid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-    gap: '16px',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+    gap: '24px',
+    '@media (max-width: 480px)': {
+      gridTemplateColumns: '1fr',
+      gap: '12px',
+    },
   },
   card: {
     width: '100%',
     maxWidth: '100%',
     height: '100%',
     cursor: 'pointer',
-    padding: '16px',
+    padding: '24px',
     transition: 'transform 0.2s ease, box-shadow 0.2s ease',
     ':hover': {
       transform: 'translateY(-2px)',

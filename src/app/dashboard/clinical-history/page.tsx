@@ -1,58 +1,214 @@
 'use client';
 
-import React, { useState } from 'react';
-import { makeStyles, tokens } from '@fluentui/react-components';
-
-// Pastikan import ini mengarah ke file yang benar sesuai struktur folder barumu
-import { 
-  AssessmentList, 
+import React, { useState, useEffect, useCallback } from 'react';
+import { makeStyles, tokens, Button, Spinner, Text } from '@fluentui/react-components';
+import { ArrowLeftRegular } from '@fluentui/react-icons';
+import {
+  HistoryHeader,
+  AssessmentList,
+  AssessmentRecord,
   PatientDirectory,
-  PatientContainer
+  PatientContainer,
 } from '../../../components/sections/clinical-history-pages/clinical-history-pages';
 
 const useStyles = makeStyles({
   pageContainer: {
-    padding: '24px 32px 0px 32px', 
+    padding: '24px 32px 0px 32px',
     width: '100%',
     boxSizing: 'border-box',
     display: 'flex',
     flexDirection: 'column',
-    minHeight: 'calc(100vh - 56px)', 
+    minHeight: 'calc(100vh - 56px)',
     backgroundColor: tokens.colorNeutralBackground1,
-  }
+  },
+  backButton: {
+    marginBottom: '24px',
+  },
+  centerContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
+    gap: '16px',
+    padding: '60px 0',
+  },
 });
 
-// --- DATA DUMMY PASIEN ---
-const DUMMY_PATIENTS: PatientContainer[] = [
-  { id: '1', name: 'Siti Aminah', mrn: 'RM-2026-00142', dob: '12 Maret 1996 (30 Tahun)', lastVisit: '25 Juni 2026' },
-  { id: '2', name: 'Rina Melati', mrn: 'RM-2026-00188', dob: '05 Agustus 1998 (27 Tahun)', lastVisit: '10 Mei 2026' },
-  { id: '3', name: 'Dewi Lestari', mrn: 'RM-2026-00201', dob: '22 Januari 1994 (32 Tahun)', lastVisit: '01 Juni 2026' },
-  { id: '4', name: 'Ayu Wandira', mrn: 'RM-2026-00215', dob: '17 November 1999 (26 Tahun)', lastVisit: '15 Juni 2026' },
-];
+// ============================================================================
+// HELPERS: Mapping data API → tipe PatientContainer & AssessmentRecord
+// ============================================================================
+function mapToPatientContainer(raw: any): PatientContainer {
+  // Hitung umur dari dateOfBirth jika tersedia
+  const dob = raw.dateOfBirth || '1990-01-01';
+  const age = new Date().getFullYear() - new Date(dob).getFullYear();
+  const formattedDob = new Date(dob).toLocaleDateString('id-ID', {
+    day: 'numeric', month: 'long', year: 'numeric'
+  });
 
+  // Format tanggal kunjungan terakhir dari createdAt
+  const lastVisit = raw.createdAt
+    ? new Date(raw.createdAt).toLocaleDateString('id-ID', {
+        day: 'numeric', month: 'long', year: 'numeric',
+      })
+    : '-';
+
+  return {
+    id: String(raw.id),
+    name: raw.patientName,
+    mrn: raw.medicalRecordNumber,
+    dob: `${formattedDob} (${age} Tahun)`,
+    lastVisit,
+  };
+}
+
+function mapToAssessmentRecord(raw: any): AssessmentRecord {
+  const date = raw.createdAt
+    ? new Date(raw.createdAt).toLocaleDateString('id-ID', {
+        day: 'numeric', month: 'long', year: 'numeric',
+      })
+    : '-';
+
+  return {
+    id: raw.assessmentId,
+    date,
+    probability: Math.round((raw.probability ?? 0) * 100),
+    riskLabel: raw.riskLabel ?? 'Unknown',
+    narrative: raw.narrativeExplanation ?? 'Narasi tidak tersedia.',
+  };
+}
+
+// ============================================================================
+// MAIN PAGE COMPONENT
+// ============================================================================
 export default function ClinicalHistoryPage() {
   const styles = useStyles();
-  
+
   const [selectedPatient, setSelectedPatient] = useState<PatientContainer | null>(null);
+
+  // State untuk daftar pasien
+  const [patients, setPatients] = useState<PatientContainer[]>([]);
+  const [isPatientsLoading, setIsPatientsLoading] = useState(true);
+  const [patientsError, setPatientsError] = useState<string | null>(null);
+
+  // State untuk riwayat asesmen pasien yang dipilih
+  const [assessments, setAssessments] = useState<AssessmentRecord[]>([]);
+  const [isAssessmentsLoading, setIsAssessmentsLoading] = useState(false);
+  const [assessmentsError, setAssessmentsError] = useState<string | null>(null);
+
+  // Fetch daftar semua pasien saat komponen pertama kali dimuat
+  useEffect(() => {
+    const fetchPatients = async () => {
+      setIsPatientsLoading(true);
+      setPatientsError(null);
+      try {
+        const res = await fetch('/api/get-patients');
+        const json = await res.json();
+        if (!json.success) throw new Error(json.message);
+        setPatients(json.data.map(mapToPatientContainer));
+      } catch (err: any) {
+        setPatientsError(err.message || 'Gagal memuat daftar pasien.');
+      } finally {
+        setIsPatientsLoading(false);
+      }
+    };
+
+    fetchPatients();
+  }, []);
+
+  // Fetch riwayat asesmen saat pasien dipilih
+  const handleSelectPatient = useCallback(async (patient: PatientContainer) => {
+    setSelectedPatient(patient);
+    setAssessments([]);
+    setIsAssessmentsLoading(true);
+    setAssessmentsError(null);
+
+    try {
+      const res = await fetch(`/api/get-assessments/${patient.id}`);
+      const json = await res.json();
+      if (!json.success) throw new Error(json.message);
+      setAssessments(json.data.map(mapToAssessmentRecord));
+    } catch (err: any) {
+      setAssessmentsError(err.message || 'Gagal memuat riwayat asesmen.');
+    } finally {
+      setIsAssessmentsLoading(false);
+    }
+  }, []);
 
   return (
     <div className={styles.pageContainer}>
-      
-      {/* Jika tidak ada pasien terpilih, tampilkan tabel direktori utama */}
+
+      {/* ============================================================ */}
+      {/* PANEL KIRI: DAFTAR PASIEN                                    */}
+      {/* ============================================================ */}
       {!selectedPatient && (
-        <PatientDirectory 
-          patients={DUMMY_PATIENTS} 
-          onSelectPatient={(patient) => setSelectedPatient(patient)} 
-        />
+        <>
+          {isPatientsLoading && (
+            <div className={styles.centerContainer}>
+              <Spinner size="large" label="Memuat daftar pasien dari database..." />
+            </div>
+          )}
+
+          {patientsError && !isPatientsLoading && (
+            <div className={styles.centerContainer}>
+              <Text style={{ color: tokens.colorPaletteRedForeground1 }}>
+                ⚠️ {patientsError}
+              </Text>
+              <Button onClick={() => window.location.reload()}>Coba Lagi</Button>
+            </div>
+          )}
+
+          {!isPatientsLoading && !patientsError && (
+            <PatientDirectory
+              patients={patients}
+              onSelectPatient={handleSelectPatient}
+            />
+          )}
+        </>
       )}
 
-      {/* Jika ada pasien terpilih, PANGGIL KOMPONEN BARU KITA DENGAN PROPS YANG BENAR */}
+      {/* ============================================================ */}
+      {/* PANEL KANAN: DETAIL PASIEN + RIWAYAT ASESMEN                 */}
+      {/* ============================================================ */}
       {selectedPatient && (
-        <AssessmentList 
-          patient={selectedPatient}
-          onBack={() => setSelectedPatient(null)}
-          onNewAnalysis={() => alert('Fitur buat analisis baru siap dihubungkan!')}
-        />
+        <>
+          <Button
+            appearance="subtle"
+            icon={<ArrowLeftRegular />}
+            onClick={() => setSelectedPatient(null)}
+            className={styles.backButton}
+          >
+            Kembali ke Daftar Pasien
+          </Button>
+
+          <HistoryHeader patient={selectedPatient} />
+
+          {isAssessmentsLoading && (
+            <div className={styles.centerContainer}>
+              <Spinner size="medium" label="Memuat riwayat pemeriksaan..." />
+            </div>
+          )}
+
+          {assessmentsError && !isAssessmentsLoading && (
+            <div className={styles.centerContainer}>
+              <Text style={{ color: tokens.colorPaletteRedForeground1 }}>
+                ⚠️ {assessmentsError}
+              </Text>
+            </div>
+          )}
+
+          {!isAssessmentsLoading && !assessmentsError && assessments.length === 0 && (
+            <div className={styles.centerContainer}>
+              <Text style={{ color: tokens.colorNeutralForeground3 }}>
+                Belum ada riwayat pemeriksaan untuk pasien ini.
+              </Text>
+            </div>
+          )}
+
+          {!isAssessmentsLoading && !assessmentsError && assessments.length > 0 && (
+            <AssessmentList assessments={assessments} />
+          )}
+        </>
       )}
 
     </div>
