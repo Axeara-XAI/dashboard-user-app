@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { 
   makeStyles, 
   tokens, 
@@ -24,13 +25,11 @@ import {
   DeleteRegular,
   ArrowClockwiseRegular,
   DocumentArrowDownRegular,
-  FilterRegular,
-  DismissRegular,
-  PlayRegular,
   BookQuestionMarkRegular,
   ChevronLeftRegular,
   ChevronRightRegular,
-  HeartPulseRegular // <-- IKON BARU DITAMBAHKAN DI SINI
+  HeartPulseRegular,
+  EditRegular
 } from '@fluentui/react-icons';
 
 // ============================================================================
@@ -41,28 +40,8 @@ const useStyles = makeStyles({
     display: 'flex',
     flexDirection: 'column',
     width: '100%',
-    flexGrow: 1, // KUNCI: Membuat komponen ini mengisi sisa layar ke bawah
+    flexGrow: 1, 
   },
-  // --- HEADER STYLES ---
-  headerSection: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '4px', 
-  },
-  breadcrumb: {
-    color: tokens.colorNeutralForeground3,
-    fontSize: '12px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '4px',
-  },
-  titleRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '16px',
-    flexWrap: 'wrap',
-  },
-  // --- COMMAND BAR STYLES ---
   commandBar: {
     display: 'flex',
     alignItems: 'center',
@@ -81,7 +60,6 @@ const useStyles = makeStyles({
     backgroundColor: tokens.colorNeutralStroke2,
     margin: '0 8px',
   },
-  // --- FILTER STYLES ---
   filterArea: {
     display: 'flex',
     alignItems: 'center',
@@ -90,22 +68,8 @@ const useStyles = makeStyles({
     flexWrap: 'wrap',
   },
   filterInput: {
-    minWidth: '240px',
+    minWidth: '300px',
   },
-  activeFilterBadge: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    backgroundColor: tokens.colorNeutralBackground1,
-    padding: '2px 10px',
-    borderRadius: '16px',
-    fontSize: '13px',
-    border: `1px solid ${tokens.colorNeutralStroke1}`,
-  },
-  boldText: {
-    fontWeight: '600',
-  },
-  // --- TABLE STYLES ---
   tableContainer: {
     overflowX: 'auto',
     marginTop: '4px',
@@ -126,16 +90,15 @@ const useStyles = makeStyles({
     color: tokens.colorPaletteGreenForeground1,
     padding: '2px 8px',
     borderRadius: '4px',
-    fontSize: '12px',
+    fontSize: '14px',
     fontWeight: '500',
   },
-  // --- FOOTER STYLES ---
   footerSection: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 'auto', // Mendorong otomatis footer ke ujung bawah
-    padding: '16px 0px 16px 0px', // Memberikan ruang di dalam footer itu sendiri
+    marginTop: 'auto', 
+    padding: '16px 0px 16px 0px', 
     borderTop: `1px solid ${tokens.colorNeutralStroke2}`, 
     flexWrap: 'wrap',
     gap: '16px',
@@ -157,9 +120,6 @@ const useStyles = makeStyles({
   }
 });
 
-// ============================================================================
-// INTERFACE
-// ============================================================================
 export interface PatientContainer {
   id: string;
   name: string;
@@ -171,81 +131,97 @@ export interface PatientContainer {
 interface PatientDirectoryProps {
   patients: PatientContainer[];
   onSelectPatient: (patient: PatientContainer) => void;
+  onRefresh?: () => void;
 }
 
-// ============================================================================
-// MAIN COMPONENT
-// ============================================================================
-export default function PatientDirectory({ patients, onSelectPatient }: PatientDirectoryProps) {
+export default function PatientDirectory({ patients, onSelectPatient, onRefresh }: PatientDirectoryProps) {
   const styles = useStyles();
+  const router = useRouter();
+  
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // 1. Logika Hapus (Mock untuk demo)
+  const handleDelete = () => {
+    alert('Fitur hapus pasien memerlukan otorisasi tingkat lanjut. Hubungi Administrator sistem Anda.');
+  };
+
+  // 2. Logika Export CSV
+  const handleExportCSV = () => {
+    if (patients.length === 0) return;
+    const headers = ['Nama Pasien', 'No. Rekam Medis', 'Kunjungan Terakhir'];
+    const rows = patients.map(p => `"${p.name}","${p.mrn}","${p.lastVisit}"`);
+    const csvContent = [headers.join(','), ...rows].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'Data_Pasien_AXARA.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // 3. Logika Filter Search
+  const filteredPatients = patients.filter(p => 
+    p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    p.mrn.includes(searchQuery)
+  );
 
   return (
     <div className={styles.container}>
       
-      {/* 1. TITLE & BREADCRUMB AREA */}
-      <div className={styles.headerSection}>
-        <div className={styles.breadcrumb}>
-          <Link href="/dashboard">Beranda</Link> <span>&gt;</span> <Text>Riwayat Klinis</Text>
-        </div>
-        
-        <div className={styles.titleRow}>
-          <Text size={900} weight="semibold" style={{ color: tokens.colorBrandForeground1 }}>
-            Riwayat Klinis
-          </Text>
-        </div>
-        
-        <Text size={300} style={{ color: tokens.colorNeutralForeground3 }}>
-          Sistem Manajemen Rekam Medis
-        </Text>
-      </div>
-
-      {/* 2. COMMAND BAR */}
+      {/* 1. COMMAND BAR */}
       <div className={styles.commandBar}>
-        <Button appearance="transparent" icon={<AddRegular className={styles.blueIcon} />}>Buat Baru</Button>
-        <Button appearance="transparent" icon={<DeleteRegular className={styles.blueIcon} />}>Hapus</Button>
+        <Button 
+          appearance="transparent" 
+          icon={<AddRegular className={styles.blueIcon} />}
+          onClick={() => router.push('/dashboard/analysis')}
+        >
+          Buat Baru
+        </Button>
         <div className={styles.divider} />
-        <Button appearance="transparent" icon={<ArrowClockwiseRegular className={styles.blueIcon} />}>Refresh</Button>
-        <Button appearance="transparent" icon={<DocumentArrowDownRegular className={styles.blueIcon} />}>Ekspor ke CSV</Button>
-        <div className={styles.divider} />
-        <Button appearance="transparent" icon={<PlayRegular className={styles.blueIcon} />}>Mulai Analisis</Button>
+        <Button 
+          appearance="transparent" 
+          icon={<ArrowClockwiseRegular className={styles.blueIcon} />}
+          onClick={onRefresh}
+        >
+          Refresh
+        </Button>
+        <Button 
+          appearance="transparent" 
+          icon={<DocumentArrowDownRegular className={styles.blueIcon} />}
+          onClick={handleExportCSV}
+        >
+          Ekspor ke CSV
+        </Button>
       </div>
 
-      {/* 3. FILTER BAR */}
+      {/* 2. FILTER BAR */}
       <div className={styles.filterArea}>
         <Input 
           className={styles.filterInput}
-          placeholder="Cari sumber daya, pasien, dan No. RM..." 
+          placeholder="Cari berdasarkan nama pasien atau No. RM..." 
           contentBefore={<SearchRegular />} 
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
         />
-        
-        <div className={styles.activeFilterBadge}>
-          <Text>Status Kehamilan <span className={styles.boldText}>sama dengan</span> Aktif</Text>
-          <Button icon={<DismissRegular />} appearance="transparent" size="small" style={{ minWidth: 'auto', padding: '2px' }} />
-        </div>
-        <div className={styles.activeFilterBadge}>
-          <Text>Risiko FGR <span className={styles.boldText}>sama dengan</span> Semua</Text>
-          <Button icon={<DismissRegular />} appearance="transparent" size="small" style={{ minWidth: 'auto', padding: '2px' }} />
-        </div>
-
-        <Button appearance="subtle" icon={<AddRegular className={styles.blueIcon} />}>Tambahkan filter</Button>
       </div>
 
-      {/* 4. DATA GRID / TABLE */}
+      {/* 3. DATA GRID / TABLE */}
       <div className={styles.tableContainer}>
-        <Table aria-label="Daftar Pasien" style={{ minWidth: '800px' }}>
+        <Table aria-label="Daftar Pasien" style={{ minWidth: '700px' }}>
           <TableHeader>
             <TableRow>
               <TableHeaderCell>Nama Pasien</TableHeaderCell>
               <TableHeaderCell>No. Rekam Medis</TableHeaderCell>
-              <TableHeaderCell>Tanggal Lahir</TableHeaderCell>
               <TableHeaderCell>Kunjungan Terakhir</TableHeaderCell>
-              <TableHeaderCell>Status</TableHeaderCell>
               <TableHeaderCell>Aksi</TableHeaderCell>
             </TableRow>
           </TableHeader>
           
           <TableBody>
-            {patients.map((patient) => (
+            {filteredPatients.map((patient) => (
               <TableRow 
                 key={patient.id} 
                 className={styles.interactiveRow}
@@ -258,34 +234,72 @@ export default function PatientDirectory({ patients, onSelectPatient }: PatientD
                   </div>
                 </TableCell>
                 <TableCell>{patient.mrn}</TableCell>
-                <TableCell>{patient.dob}</TableCell>
                 <TableCell>{patient.lastVisit}</TableCell>
                 <TableCell>
-                  <span className={styles.statusBadge}>Aktif</span>
-                </TableCell>
-                <TableCell>
-                  <Button 
-                    appearance="subtle" 
-                    icon={<ArrowRightRegular />} 
-                    iconPosition="after"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onSelectPatient(patient);
-                    }}
-                  >
-                    Buka
-                  </Button>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <Button 
+                      appearance="subtle" 
+                      icon={<EditRegular />} 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(`/dashboard/analysis?editId=${patient.id}`);
+                      }}
+                    >
+                      Edit
+                    </Button>
+                    <Button 
+                      appearance="subtle" 
+                      style={{ color: tokens.colorPaletteRedForeground1 }}
+                      icon={<DeleteRegular />} 
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        if (confirm(`Apakah Anda yakin ingin menghapus data pasien ${patient.name}?`)) {
+                          try {
+                            const res = await fetch(`/api/delete-patient/${patient.id}`, { method: 'DELETE' });
+                            const json = await res.json();
+                            if (json.success) {
+                              if (onRefresh) onRefresh();
+                            } else {
+                              alert('Gagal menghapus: ' + json.message);
+                            }
+                          } catch (err) {
+                            alert('Terjadi kesalahan saat menghapus data.');
+                          }
+                        }
+                      }}
+                    >
+                      Hapus
+                    </Button>
+                    <Button 
+                      appearance="subtle" 
+                      icon={<ArrowRightRegular />} 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSelectPatient(patient);
+                      }}
+                    >
+                      Buka
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
+            
+            {filteredPatients.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={6} style={{ textAlign: 'center', padding: '24px' }}>
+                  <Text>Tidak ada pasien yang ditemukan.</Text>
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </div>
       
-      {/* 5. FOOTER */}
+      {/* 4. FOOTER */}
       <div className={styles.footerSection}>
-        <Text size={200} style={{ color: tokens.colorNeutralForeground3 }}>
-          Menampilkan 1 - {patients.length} dari {patients.length} data.
+        <Text size={300} style={{ color: tokens.colorNeutralForeground3 }}>
+          Menampilkan 1 - {filteredPatients.length} dari {filteredPatients.length} data.
         </Text>
 
         <div className={styles.footerRightGroup}>
@@ -293,20 +307,19 @@ export default function PatientDirectory({ patients, onSelectPatient }: PatientD
             <Button appearance="transparent" size="small" icon={<BookQuestionMarkRegular />}>
               Panduan Manajemen
             </Button>
-            {/* IKON HEART PULSE DITAMBAHKAN PADA TOMBOL INI */}
             <Button appearance="transparent" size="small" icon={<HeartPulseRegular />}>
               Diagnosis Performa Sistem
             </Button>
           </div>
 
-          {patients.length > 20 && <div className={styles.divider} />}
+          {filteredPatients.length > 20 && <div className={styles.divider} />}
 
-          {patients.length > 20 && (
+          {filteredPatients.length > 20 && (
             <div className={styles.paginationGroup}>
               <Button appearance="subtle" size="small" icon={<ChevronLeftRegular />} disabled>
                 Sebel.
               </Button>
-              <Text size={200} weight="semibold" style={{ padding: '0 8px' }}>1</Text>
+              <Text size={300} weight="semibold" style={{ padding: '0 8px' }}>1</Text>
               <Button appearance="subtle" size="small" icon={<ChevronRightRegular />} iconPosition="after">
                 Selanj.
               </Button>

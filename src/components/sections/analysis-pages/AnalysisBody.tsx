@@ -8,6 +8,8 @@ import {
   Text,
 } from '@fluentui/react-components';
 
+import { useRouter } from 'next/navigation';
+
 // Impor 4 komponen step
 import IdentitasOrangTua from './steps/IdentitasOrangTua';
 import RiwayatKesehatanIbu from './steps/RiwayatKesehatanIbu';
@@ -27,6 +29,7 @@ import { AnalysisFormData } from '../../../type/analysis';
 interface AnalysisBodyProps {
   currentStep: number;
   setCurrentStep: (step: number) => void;
+  editId?: string | null;
 }
 
 // ============================================================================
@@ -75,7 +78,7 @@ const useStyles = makeStyles({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontSize: '12px',
+    fontSize: '14px',
     transition: 'all 0.2s ease',
   },
   stepCircleActive: {
@@ -102,11 +105,81 @@ const STEP_LIST = [
   'Hasil Analisis', 
 ];
 
+const getEducationCat = (raw: number) => {
+  if (raw === 1) return 'Tidak Sekolah';
+  if (raw >= 1 && raw <= 6) return 'SD';
+  if (raw >= 7 && raw <= 9) return 'SMP';
+  if (raw >= 10 && raw <= 12) return 'SMA/SMK';
+  if (raw >= 13 && raw <= 15) return 'Diplomat';
+  if (raw >= 16 && raw <= 18) return 'Sarjana';
+  return 'Tidak Sekolah';
+};
+
 // ============================================================================
 // MAIN COMPONENT
 // ============================================================================
-export default function AnalysisBody({ currentStep, setCurrentStep }: AnalysisBodyProps) {
+export default function AnalysisBody({ currentStep, setCurrentStep, editId }: AnalysisBodyProps) {
   const styles = useStyles();
+  const router = useRouter();
+
+  // Memuat data pasien jika dalam mode Edit
+  React.useEffect(() => {
+    if (editId) {
+      const fetchPatientDetail = async () => {
+        try {
+          const res = await fetch(`/api/get-patient-detail/${editId}`);
+          const json = await res.json();
+          if (json.success && json.data.patient && json.data.assessment) {
+            const p = json.data.patient;
+            const a = json.data.assessment;
+            setFormData(prev => ({
+              ...prev,
+              nama_ibu: p.patientName,
+              mage: String(a.mage),
+              meduc_raw: a.meduc,
+              meduc_cat: getEducationCat(a.meduc),
+              racemom: String(a.racemom),
+              hispmom: a.hispmom,
+              marital: String(a.marital),
+              fage: String(a.fage),
+              feduc_raw: a.feduc,
+              feduc_cat: getEducationCat(a.feduc),
+              racedad: String(a.racedad),
+              hispdad: a.hispdad,
+
+              anemia: a.anemia === 1,
+              jantung: a.jantung === 1,
+              paru: a.paru === 1,
+              diabetes: a.diabetes === 1,
+              hipertensi_kronis: a.hipertensiKronis === 1,
+              hipertensi_gestasional: a.hipertensiGestasional === 1,
+              eklamsia: a.eklamsia === 1,
+              ginjal: a.ginjal === 1,
+              herpes: a.herpes === 1,
+              hydram: a.hydram === 1,
+              rhsen: a.rhsen === 1,
+              hemoglob: String(a.hemoglob),
+              cervix: a.serviks === 1,
+              uterine: a.rahim === 1,
+              totalp: String(a.totalp),
+              bdead: String(a.bdead),
+              preterm: String(a.preterm),
+              pinfant: String(a.pinfant),
+
+              gained: String(a.gained),
+              visits: String(a.visits),
+              cignum: String(a.cignum),
+              drinknum: String(a.drinknum),
+              loutcome: String(a.loutcome),
+            }));
+          }
+        } catch (err) {
+          console.error("Gagal memuat data pasien untuk diedit:", err);
+        }
+      };
+      fetchPatientDetail();
+    }
+  }, [editId]);
 
   const [formData, setFormData] = useState<AnalysisFormData>({
     // Langkah 1: Identitas Orang Tua
@@ -237,7 +310,7 @@ export default function AnalysisBody({ currentStep, setCurrentStep }: AnalysisBo
       const response = await fetch('/api/save-analysis', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ formData, apiData }) 
+        body: JSON.stringify({ formData, apiData, editId }) 
       });
       
       const result = await response.json();
@@ -286,7 +359,7 @@ export default function AnalysisBody({ currentStep, setCurrentStep }: AnalysisBo
           Pastikan setiap detail yang dimasukkan akurat sesuai dengan kode variabel (MAGE, MEDUC, dll) 
           untuk keperluan dataset medis.
         </Text>
-        <Link>Pelajari prosedur pengisian data</Link>
+        <Link href="/dashboard/panduan">Pelajari prosedur pengisian data</Link>
       </div>
 
       {/* --- DYNAMIC FORM RENDERING DENGAN PROPS --- */}
@@ -307,7 +380,12 @@ export default function AnalysisBody({ currentStep, setCurrentStep }: AnalysisBo
       {isAlertOpen && (
         <AlertModal 
           isOpen={isAlertOpen} 
-          onClose={() => setIsAlertOpen(false)} 
+          onClose={() => {
+            setIsAlertOpen(false);
+            if (alertConfig.type === 'success') {
+              router.push('/dashboard');
+            }
+          }} 
           type={alertConfig.type} 
           message={alertConfig.message} 
         />

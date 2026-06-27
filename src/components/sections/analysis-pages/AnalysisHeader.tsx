@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { makeStyles, tokens, Button, Link } from '@fluentui/react-components';
-import { Dismiss24Regular } from '@fluentui/react-icons'; 
+import { ArrowLeft24Regular } from '@fluentui/react-icons'; 
 
 // Import komponen AlertModal dari folder UI
 import AlertModal from '../../ui/AlertModal';
@@ -27,7 +27,7 @@ const useStyles = makeStyles({
     backgroundColor: tokens.colorNeutralBackground1,
   },
   breadcrumb: {
-    fontSize: '12px',
+    fontSize: '14px',
     color: tokens.colorNeutralForeground2,
     display: 'flex',
     alignItems: 'center',
@@ -92,26 +92,24 @@ export default function AnalysisHeader({ isFormDirty = false }: AnalysisHeaderPr
         
         {/* --- BREADCRUMB SECTION --- */}
         <div className={styles.breadcrumb}>
-          {/* PERBAIKAN: Beranda sekarang memanggil handleCloseClick agar memicu Alert jika form kotor */}
           <Link className={styles.breadcrumbLink} onClick={handleCloseClick}>
             Beranda
           </Link>
           <span>&gt;</span>
-          <span>Analysis</span>
+          <span>Analisis Baru</span>
         </div>
 
         {/* --- TITLE & ACTIONS SECTION --- */}
         <div className={styles.titleRow}>
           <div className={styles.titleLeft}>
+            <Button 
+              appearance="subtle" 
+              icon={<ArrowLeft24Regular />} 
+              aria-label="Back" 
+              onClick={handleCloseClick} 
+            />
             <h1 className={styles.titleText}>Buat Laporan Analisis</h1>
           </div>
-          
-          <Button 
-            appearance="subtle" 
-            icon={<Dismiss24Regular />} 
-            aria-label="Close" 
-            onClick={handleCloseClick} 
-          />
         </div>
       </div>
 

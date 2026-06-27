@@ -1,11 +1,21 @@
 import { NextResponse } from 'next/server';
 import { db } from '../../../db'; 
 import { patients, assessments, assessmentResults, shapExplanations, diceScenarios, diceChanges } from '../../../db/schema';
+import { eq } from 'drizzle-orm';
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { formData, apiData } = body;
+    const { formData, apiData, editId } = body;
+
+    // Jika editId ada, hapus data lama terlebih dahulu agar tidak dobel
+    if (editId) {
+      const oldPatientId = parseInt(editId);
+      if (!isNaN(oldPatientId)) {
+        await db.delete(assessments).where(eq(assessments.patientId, oldPatientId));
+        await db.delete(patients).where(eq(patients.id, oldPatientId));
+      }
+    }
 
     // 1. Insert Data Pasien 
     const rmNumber = `RM-${Date.now()}`;

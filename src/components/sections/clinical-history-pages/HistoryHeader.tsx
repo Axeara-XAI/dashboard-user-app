@@ -65,14 +65,6 @@ export default function HistoryHeader({ patient }: HistoryHeaderProps) {
         </div>
       </div>
       
-      {/* Fitur Linier: Cetak Keseluruhan Histori */}
-      <Button 
-        appearance="primary" 
-        icon={<DocumentPdfRegular />}
-        onClick={handleExportSummary}
-      >
-        Unduh Ringkasan Medis (PDF)
-      </Button>
     </div>
   );
 }

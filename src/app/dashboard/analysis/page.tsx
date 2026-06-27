@@ -7,6 +7,8 @@ import {
   AnalysisBody,
 } from '../../../components/sections/analysis-pages/analysis-pages';
 
+import { useSearchParams } from 'next/navigation';
+
 // ============================================================================
 // STYLES DEFINITION
 // ============================================================================
@@ -38,6 +40,8 @@ const useStyles = makeStyles({
 // ============================================================================
 export default function AnalysisPage() {
   const styles = useStyles();
+  const searchParams = useSearchParams();
+  const editId = searchParams.get('editId');
   
   // State utama untuk mengontrol langkah form
   const [currentStep, setCurrentStep] = useState<number>(1);
@@ -54,7 +58,7 @@ export default function AnalysisPage() {
     <div className={styles.pageWrapper}>
       <div className={styles.pageContainer}>
         <AnalysisHeader isFormDirty={isFormDirty} />
-        <AnalysisBody currentStep={currentStep} setCurrentStep={setCurrentStep} />
+        <AnalysisBody currentStep={currentStep} setCurrentStep={setCurrentStep} editId={editId} />
       </div>
     </div>
   );

@@ -57,7 +57,7 @@ export default function AnalysisFooter({
 
   // Logika navigasi antar langkah (Maksimal 5 langkah)
   const handleNext = () => {
-    if (currentStep < 5) setCurrentStep(currentStep + 1);
+    if (currentStep < 4) setCurrentStep(currentStep + 1);
   };
 
   const handlePrev = () => {
@@ -86,8 +86,8 @@ export default function AnalysisFooter({
           Previous
         </Button>
 
-        {/* Jika di langkah 5, tampilkan tombol Simpan. Jika belum, tampilkan tombol Berikutnya */}
-        {currentStep === 5 ? (
+        {/* Jika di langkah 4, tampilkan tombol Simpan. Jika belum, tampilkan tombol Berikutnya */}
+        {currentStep === 4 ? (
           <Button 
             appearance="primary" 
             onClick={handleSubmit}
@@ -105,11 +105,8 @@ export default function AnalysisFooter({
         )}
       </div>
 
-      {/* --- RIGHT: FEEDBACK LINK --- */}
-      <div className={styles.feedbackLink}>
-        <PersonFeedback20Regular />
-        <span>Berikan umpan balik</span>
-      </div>
+      {/* --- RIGHT: EMPTY SECTION FOR ALIGNMENT --- */}
+      <div></div>
       
     </div>
   );

@@ -74,7 +74,7 @@ const useStyles = makeStyles({
     color: tokens.colorNeutralForeground1,
   },
   cardDescription: {
-    fontSize: '13px',
+    fontSize: '15px',
     color: tokens.colorNeutralForeground2,
     lineHeight: '1.4',
   },
@@ -92,35 +92,41 @@ export default function ServicesSection() {
   // ==========================================================================
   const services = [
     {
-      name: 'Analysis',
+      name: 'Analisis Baru',
       icon: <DataTrending24Regular />,
-      description: 'Lakukan pemrosesan dan visualisasi data mentah menjadi wawasan analitik yang interaktif.',
+      description: 'Lakukan analisis prediktif baru untuk deteksi risiko FGR berdasarkan data klinis ibu.',
       href: '/dashboard/analysis', 
     },
     {
       name: 'Riwayat Klinis',
       icon: <Clipboard24Regular />,
-      description: 'Akses, kelola, dan pantau data rekam medis terpadu dengan tingkat keamanan tinggi.',
+      description: 'Akses, kelola, dan pantau data rekam medis pasien terpadu secara detail.',
       href: '/dashboard/clinical-history',
     },
     {
-      name: 'Kontainer data',
+      name: 'Riwayat Analisis',
       icon: <Box24Regular />,
-      description: 'Ruang penyimpanan terisolasi yang dapat diskalakan untuk menyimpan berbagai struktur dokumen.',
-      href: '/dashboard/kontainer-data',
+      description: 'Log lengkap seluruh prediksi FGR yang pernah dilakukan di sistem.',
+      href: '/dashboard/riwayat-analisis',
     },
     {
-      name: 'Berbagi Data',
-      icon: <Share24Regular />,
-      description: 'Fasilitas sinkronisasi dan distribusi aliran data antar entitas secara real-time dan aman.',
-      href: '/dashboard/berbagi-data',
+      name: 'Statistik & Tren',
+      icon: <Share24Regular />, // Icon lama untuk mempertahankan struktur
+      description: 'Pantau metrik performa, agregat pasien, dan sebaran prediksi risiko secara keseluruhan.',
+      href: '/dashboard/statistik',
+    },
+    {
+      name: 'Panduan Klinis',
+      icon: <Headset24Regular />,
+      description: 'Referensi indikator medis, cara interpretasi model AI, dan pedoman diagnosis.',
+      href: '/dashboard/panduan',
     },
     {
       name: 'Tiket Bantuan',
       icon: <Headset24Regular />,
-      description: 'Buat dan pantau tiket dukungan teknis untuk pelaporan kendala pada ekosistem Axara Panel.',
+      description: 'Laporkan kendala teknis atau kirim pertanyaan langsung ke admin sistem.',
       href: '/dashboard/tiket-bantuan',
-    },
+    }
   ];
 
   // ==========================================================================
