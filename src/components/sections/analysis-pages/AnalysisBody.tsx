@@ -8,11 +8,10 @@ import {
   Text,
 } from '@fluentui/react-components';
 
-// Impor 5 komponen step
+// Impor 4 komponen step
 import IdentitasOrangTua from './steps/IdentitasOrangTua';
 import RiwayatKesehatanIbu from './steps/RiwayatKesehatanIbu';
 import DataKehamilan from './steps/DataKehamilan';
-import OutcomeKehamilan from './steps/OutcomeKehamilan';
 import HasilAnalisis from './steps/HasilAnalisis'; 
 
 // Impor Footer dan AlertModal 
@@ -42,6 +41,9 @@ const useStyles = makeStyles({
     flex: 1,
     overflowY: 'auto',
     backgroundColor: tokens.colorNeutralBackground1,
+    '@media (max-width: 768px)': {
+      padding: '0 16px 16px 16px',
+    }
   },
   stepperContainer: {
     display: 'flex',
@@ -97,7 +99,6 @@ const STEP_LIST = [
   'Identitas Orang Tua',
   'Riwayat Kesehatan Ibu',
   'Data Kehamilan',
-  'Outcome Kehamilan',
   'Hasil Analisis', 
 ];
 
@@ -134,7 +135,7 @@ export default function AnalysisBody({ currentStep, setCurrentStep }: AnalysisBo
     ginjal: false, 
     herpes: false, 
     hydram: false, 
-    rhsen: false, // PERBAIKAN: rhsen sekarang didaftarkan di sini
+    rhsen: false, 
     hemoglob: '0', 
     cervix: false, 
     uterine: false,
@@ -142,6 +143,7 @@ export default function AnalysisBody({ currentStep, setCurrentStep }: AnalysisBo
     bdead: '0', 
     preterm: '0', 
     pinfant: '0',
+    loutcome: '', // PERBAIKAN: Dipindah ke sini sesuai tipe datanya
     
     // Langkah 3: Data Kehamilan Saat Ini
     weeks: '0', 
@@ -150,10 +152,7 @@ export default function AnalysisBody({ currentStep, setCurrentStep }: AnalysisBo
     cignum: '0', 
     drinknum: '0',
     
-    // Langkah 4: Outcome Kehamilan
-    bweight: '0', 
-    loutcome: '', // Wajib diisi
-    sex: ''       // Wajib diisi
+    // PERBAIKAN: Langkah 4 (bweight dan sex) sudah dihapus bersih
   });
 
   // State untuk menangani Data AI dan Proses Penyimpanan
@@ -206,15 +205,12 @@ export default function AnalysisBody({ currentStep, setCurrentStep }: AnalysisBo
         }
       }
 
-      // Validasi Langkah 4 (Outcome Kehamilan)
-      if (currentStep === 4) {
-        const { loutcome, sex } = formData;
-        
-        // Blokir jika Status Bayi atau Jenis Kelamin belum dipilih
-        if (!loutcome || !sex) {
+      // Validasi Langkah 2 (Riwayat Kesehatan Ibu) — wajib isi LOUTCOME
+      if (currentStep === 2) {
+        if (!formData.loutcome) {
           setAlertConfig({ 
             type: 'warning', 
-            message: 'Harap pilih Status Bayi (LOUTCOME) dan Jenis Kelamin Bayi (SEX) sebelum melihat Hasil Analisis.' 
+            message: 'Harap pilih Outcome Persalinan Sebelumnya (LOUTCOME) sebelum melanjutkan.' 
           });
           setIsAlertOpen(true);
           return; 
@@ -295,8 +291,7 @@ export default function AnalysisBody({ currentStep, setCurrentStep }: AnalysisBo
       {currentStep === 1 && <IdentitasOrangTua data={formData} updateFields={updateFields} />}
       {currentStep === 2 && <RiwayatKesehatanIbu data={formData} updateFields={updateFields} />}
       {currentStep === 3 && <DataKehamilan data={formData} updateFields={updateFields} />}
-      {currentStep === 4 && <OutcomeKehamilan data={formData} updateFields={updateFields} />}
-      {currentStep === 5 && <HasilAnalisis formData={formData} onApiDataLoaded={setApiData} />}
+      {currentStep === 4 && <HasilAnalisis formData={formData} onApiDataLoaded={setApiData} />}
 
       {/* --- FOOTER DI RENDER DI SINI --- */}
       <AnalysisFooter 

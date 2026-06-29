@@ -8,7 +8,17 @@ const useStyles = makeStyles({
   formSection: { display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '700px' },
   formSectionBottom: { display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '700px', marginTop: '32px', paddingBottom: '32px' },
   sectionTitle: { fontSize: '16px', fontWeight: '600', marginBottom: '8px', color: tokens.colorBrandForeground1, borderBottom: `1px dashed ${tokens.colorNeutralStroke2}`, paddingBottom: '8px' },
-  formRow: { display: 'grid', gridTemplateColumns: '260px 1fr', alignItems: 'center', gap: '16px' },
+  formRow: { 
+    display: 'grid', 
+    gridTemplateColumns: '260px 1fr', 
+    alignItems: 'center', 
+    gap: '16px',
+    '@media (max-width: 768px)': {
+      gridTemplateColumns: '1fr',
+      gap: '8px',
+      alignItems: 'flex-start',
+    }
+  },
   labelWrapper: { display: 'flex', alignItems: 'center', gap: '4px' },
   inputWrapper: { display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-start', width: '100%' },
   inputField: { width: '100%' },
@@ -263,6 +273,27 @@ export default function RiwayatKesehatanIbu({ data, updateFields }: StepProps) {
               placeholder="Jumlah" 
               className={styles.inputField} 
             />
+          </div>
+        </div>
+
+        {/* DROPDOWN: LOUTCOME — Outcome Persalinan Sebelumnya */}
+        <div className={styles.formRow}>
+          <div className={styles.labelWrapper}><Label required>Outcome Persalinan Sebelumnya (LOUTCOME)</Label></div>
+          <div className={styles.inputWrapper}>
+            <Dropdown
+              placeholder="Pilih outcome persalinan terakhir"
+              className={styles.inputField}
+              value={
+                data.loutcome === '1' ? 'Lahir Hidup' :
+                data.loutcome === '2' ? 'Lahir Mati (Stillbirth / Neonatal Death)' :
+                data.loutcome === '9' ? 'Belum Pernah Melahirkan (Primigravida)' : ''
+              }
+              onOptionSelect={(e, props) => updateFields({ loutcome: props.optionValue as string })}
+            >
+              <Option value="1">Lahir Hidup</Option>
+              <Option value="2">Lahir Mati (Stillbirth / Neonatal Death)</Option>
+              <Option value="9">Belum Pernah Melahirkan (Primigravida)</Option>
+            </Dropdown>
           </div>
         </div>
       </div>

@@ -8,7 +8,17 @@ const useStyles = makeStyles({
   formSection: { display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '700px' },
   formSectionBottom: { display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '700px', marginTop: '32px', paddingBottom: '32px' },
   sectionTitle: { fontSize: '16px', fontWeight: '600', marginBottom: '8px', color: tokens.colorBrandForeground1, borderBottom: `1px dashed ${tokens.colorNeutralStroke2}`, paddingBottom: '8px' },
-  formRow: { display: 'grid', gridTemplateColumns: '260px 1fr', alignItems: 'center', gap: '16px' },
+  formRow: { 
+    display: 'grid', 
+    gridTemplateColumns: '260px 1fr', 
+    alignItems: 'center', 
+    gap: '16px',
+    '@media (max-width: 768px)': {
+      gridTemplateColumns: '1fr',
+      gap: '8px',
+      alignItems: 'flex-start',
+    }
+  },
   labelWrapper: { display: 'flex', alignItems: 'center', gap: '4px' },
   inputWrapper: { display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-start', width: '100%' },
   inputField: { width: '100%' },

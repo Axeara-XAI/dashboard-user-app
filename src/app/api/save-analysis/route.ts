@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '../../../db'; 
-import { patients, assessments, assessmentResults, shapExplanations } from '../../../db/schema';
+import { patients, assessments, assessmentResults, shapExplanations, diceScenarios, diceChanges } from '../../../db/schema';
 
 export async function POST(req: Request) {
   try {
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
       loutcome: Number(formData.loutcome) || 1,
       hispmom: formData.hispmom || 'N',
       hispdad: formData.hispdad || 'N',
-      rhsen: 0,
+      rhsen: formData.rhsen ? 1 : 0,
       
       // Riwayat Penyakit 
       anemia: formData.anemia ? 1 : 0,
@@ -76,6 +76,33 @@ export async function POST(req: Request) {
       }));
       
       await db.insert(shapExplanations).values(shapInserts);
+    }
+
+    // 5. Insert DiCE Counterfactuals
+    // Struktur API: xai.counterfactual.scenarios[*].changes = { featureName: { from, to } }
+    const diceScenarioData = apiData.xai?.counterfactual?.scenarios ?? [];
+    for (const scenario of diceScenarioData) {
+      const [newScenario] = await db.insert(diceScenarios).values({
+        assessmentId: newAssessment.id,
+        scenarioNumber: scenario.scenario_id,
+        newProbabilityFgr: scenario.new_probability_fgr,
+        riskReductionPct: scenario.risk_reduction_pct,
+      }).returning({ id: diceScenarios.id });
+
+      // changes adalah object: { HEMOGLOB: {from: 4.0, to: 12.3}, ... }
+      if (scenario.changes && newScenario?.id) {
+        const changeInserts = Object.entries(scenario.changes).map(
+          ([featureName, change]: [string, any]) => ({
+            scenarioId: newScenario.id,
+            featureName,
+            originalValue: change.from,
+            newValue: change.to,
+          })
+        );
+        if (changeInserts.length > 0) {
+          await db.insert(diceChanges).values(changeInserts);
+        }
+      }
     }
 
     return NextResponse.json({ success: true, message: 'Data rekam medis berhasil disimpan ke Turso DB!' });
