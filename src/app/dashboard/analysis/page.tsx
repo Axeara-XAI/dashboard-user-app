@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { makeStyles, tokens } from '@fluentui/react-components';
+import React, { Suspense, useState, useEffect } from 'react';
+import { makeStyles, tokens, Spinner } from '@fluentui/react-components';
 import {
   AnalysisHeader,
   AnalysisBody,
@@ -13,20 +13,18 @@ import { useSearchParams } from 'next/navigation';
 // STYLES DEFINITION
 // ============================================================================
 const useStyles = makeStyles({
-  // 1. WRAPPER LUAR: Bertugas memberi jarak aman dari tepi layar (menggantikan fungsi layout global)
   pageWrapper: {
     padding: '24px 32px 32px 32px',
     width: '100%',
     boxSizing: 'border-box',
     display: 'flex',
     flexDirection: 'column',
-    minHeight: 'calc(100vh - 56px)', // Mengambil sisa layar di bawah Navbar
+    minHeight: 'calc(100vh - 56px)',
   },
-  // 2. CONTAINER KARTU: Tampilan antarmuka Analysis yang sesungguhnya
   pageContainer: {
     display: 'flex',
     flexDirection: 'column',
-    flexGrow: 1, // KUNCI: Memaksa kartu ini memanjang ke bawah mengisi wrapper
+    flexGrow: 1,
     backgroundColor: tokens.colorNeutralBackground1,
     border: `1px solid ${tokens.colorNeutralStroke1}`,
     borderRadius: tokens.borderRadiusMedium,
@@ -36,20 +34,19 @@ const useStyles = makeStyles({
 });
 
 // ============================================================================
-// MAIN PAGE COMPONENT
+// INNER COMPONENT (uses useSearchParams — must be inside Suspense)
 // ============================================================================
-export default function AnalysisPage() {
+function AnalysisPageInner() {
   const styles = useStyles();
   const searchParams = useSearchParams();
   const editId = searchParams.get('editId');
-  
-  // State utama untuk mengontrol langkah form
+
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [isFormDirty, setIsFormDirty] = useState<boolean>(true);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true); 
+    setIsMounted(true);
   }, []);
 
   if (!isMounted) return null;
@@ -61,5 +58,16 @@ export default function AnalysisPage() {
         <AnalysisBody currentStep={currentStep} setCurrentStep={setCurrentStep} editId={editId} />
       </div>
     </div>
+  );
+}
+
+// ============================================================================
+// MAIN PAGE COMPONENT — wraps inner component in Suspense
+// ============================================================================
+export default function AnalysisPage() {
+  return (
+    <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', padding: '48px' }}><Spinner size="large" label="Memuat halaman analisis..." /></div>}>
+      <AnalysisPageInner />
+    </Suspense>
   );
 }

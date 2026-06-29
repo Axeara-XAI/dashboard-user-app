@@ -7,10 +7,11 @@ import { useRouter } from 'next/navigation';
 import {
   HistoryHeader,
   AssessmentList,
-  AssessmentRecord,
   PatientDirectory,
   PatientContainer,
 } from '../../../components/sections/clinical-history-pages/clinical-history-pages';
+
+
 
 const useStyles = makeStyles({
   pageContainer: {
@@ -89,21 +90,7 @@ function mapToPatientContainer(raw: any): PatientContainer {
   };
 }
 
-function mapToAssessmentRecord(raw: any): AssessmentRecord {
-  const date = raw.createdAt
-    ? new Date(raw.createdAt).toLocaleDateString('id-ID', {
-        day: 'numeric', month: 'long', year: 'numeric',
-      })
-    : '-';
 
-  return {
-    id: raw.assessmentId,
-    date,
-    probability: Math.round((raw.probability ?? 0) * 100),
-    riskLabel: raw.riskLabel ?? 'Unknown',
-    narrative: raw.narrativeExplanation ?? 'Narasi tidak tersedia.',
-  };
-}
 
 // ============================================================================
 // MAIN PAGE COMPONENT
@@ -119,10 +106,7 @@ export default function ClinicalHistoryPage() {
   const [isPatientsLoading, setIsPatientsLoading] = useState(true);
   const [patientsError, setPatientsError] = useState<string | null>(null);
 
-  // State untuk riwayat asesmen pasien yang dipilih
-  const [assessments, setAssessments] = useState<AssessmentRecord[]>([]);
-  const [isAssessmentsLoading, setIsAssessmentsLoading] = useState(false);
-  const [assessmentsError, setAssessmentsError] = useState<string | null>(null);
+  // State untuk riwayat asesmen (dikelola internal AssessmentTable)
 
   const fetchPatients = useCallback(async () => {
     setIsPatientsLoading(true);
@@ -145,22 +129,8 @@ export default function ClinicalHistoryPage() {
   }, [fetchPatients]);
 
   // Fetch riwayat asesmen saat pasien dipilih
-  const handleSelectPatient = useCallback(async (patient: PatientContainer) => {
+  const handleSelectPatient = useCallback((patient: PatientContainer) => {
     setSelectedPatient(patient);
-    setAssessments([]);
-    setIsAssessmentsLoading(true);
-    setAssessmentsError(null);
-
-    try {
-      const res = await fetch(`/api/get-assessments/${patient.id}`);
-      const json = await res.json();
-      if (!json.success) throw new Error(json.message);
-      setAssessments(json.data.map(mapToAssessmentRecord));
-    } catch (err: any) {
-      setAssessmentsError(err.message || 'Gagal memuat riwayat asesmen.');
-    } finally {
-      setIsAssessmentsLoading(false);
-    }
   }, []);
 
   return (
@@ -225,33 +195,11 @@ export default function ClinicalHistoryPage() {
             Kembali ke Daftar Pasien
           </Button>
 
-          <HistoryHeader patient={selectedPatient} />
-
-          {isAssessmentsLoading && (
-            <div className={styles.centerContainer}>
-              <Spinner size="medium" label="Memuat riwayat pemeriksaan..." />
-            </div>
-          )}
-
-          {assessmentsError && !isAssessmentsLoading && (
-            <div className={styles.centerContainer}>
-              <Text style={{ color: tokens.colorPaletteRedForeground1 }}>
-                ⚠️ {assessmentsError}
-              </Text>
-            </div>
-          )}
-
-          {!isAssessmentsLoading && !assessmentsError && assessments.length === 0 && (
-            <div className={styles.centerContainer}>
-              <Text style={{ color: tokens.colorNeutralForeground3 }}>
-                Belum ada riwayat pemeriksaan untuk pasien ini.
-              </Text>
-            </div>
-          )}
-
-          {!isAssessmentsLoading && !assessmentsError && assessments.length > 0 && (
-            <AssessmentList assessments={assessments} />
-          )}
+          <AssessmentList
+            patient={selectedPatient}
+            onBack={() => setSelectedPatient(null)}
+            onNewAnalysis={() => router.push('/dashboard/analysis')}
+          />
         </>
       )}
 
