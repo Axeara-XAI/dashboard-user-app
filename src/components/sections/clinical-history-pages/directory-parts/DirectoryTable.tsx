@@ -1,0 +1,134 @@
+'use client';
+
+import React from 'react';
+import { 
+  makeStyles, tokens, Table, TableHeader, TableRow, 
+  TableHeaderCell, TableBody, TableCell, Avatar, Text, Button 
+} from '@fluentui/react-components';
+import { PersonRegular, ArrowRightRegular, EditRegular, DeleteRegular } from '@fluentui/react-icons';
+import { useRouter } from 'next/navigation';
+
+const useStyles = makeStyles({
+  tableContainer: {
+    overflowX: 'auto',
+    marginTop: '4px',
+  },
+  patientNameCell: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+  },
+  interactiveRow: {
+    cursor: 'pointer',
+    ':hover': {
+      backgroundColor: tokens.colorNeutralBackground1Hover,
+    }
+  },
+});
+
+export interface PatientContainer {
+  id: string;
+  name: string;
+  mrn: string;
+  dob: string;
+  lastVisit: string;
+}
+
+interface DirectoryTableProps {
+  patients: PatientContainer[];
+  onSelectPatient: (patient: PatientContainer) => void;
+  onRefresh?: () => void;
+}
+
+export default function DirectoryTable({ patients, onSelectPatient, onRefresh }: DirectoryTableProps) {
+  const styles = useStyles();
+  const router = useRouter();
+
+  return (
+    <div className={styles.tableContainer}>
+      <Table aria-label="Daftar Pasien" style={{ minWidth: '700px' }}>
+        <TableHeader>
+          <TableRow>
+            <TableHeaderCell>Nama Pasien</TableHeaderCell>
+            <TableHeaderCell>No. Rekam Medis</TableHeaderCell>
+            <TableHeaderCell>Kunjungan Terakhir</TableHeaderCell>
+            <TableHeaderCell>Aksi</TableHeaderCell>
+          </TableRow>
+        </TableHeader>
+        
+        <TableBody>
+          {patients.map((patient) => (
+            <TableRow 
+              key={patient.id} 
+              className={styles.interactiveRow}
+              onClick={() => onSelectPatient(patient)}
+            >
+              <TableCell>
+                <div className={styles.patientNameCell}>
+                  <Avatar color="brand" icon={<PersonRegular />} name={patient.name} size={32} />
+                  <Text weight="semibold">{patient.name}</Text>
+                </div>
+              </TableCell>
+              <TableCell>{patient.mrn}</TableCell>
+              <TableCell>{patient.lastVisit}</TableCell>
+              <TableCell>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <Button 
+                    appearance="subtle" 
+                    icon={<EditRegular />} 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      router.push(`/dashboard/analysis?editId=${patient.id}`);
+                    }}
+                  >
+                    Edit
+                  </Button>
+                  <Button 
+                    appearance="subtle" 
+                    style={{ color: tokens.colorPaletteRedForeground1 }}
+                    icon={<DeleteRegular />} 
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      if (confirm(`Apakah Anda yakin ingin menghapus data pasien ${patient.name}?`)) {
+                        try {
+                          const res = await fetch(`/api/delete-patient/${patient.id}`, { method: 'DELETE' });
+                          const json = await res.json();
+                          if (json.success) {
+                            if (onRefresh) onRefresh();
+                          } else {
+                            alert('Gagal menghapus: ' + json.message);
+                          }
+                        } catch (err) {
+                          alert('Terjadi kesalahan saat menghapus data.');
+                        }
+                      }
+                    }}
+                  >
+                    Hapus
+                  </Button>
+                  <Button 
+                    appearance="subtle" 
+                    icon={<ArrowRightRegular />} 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSelectPatient(patient);
+                    }}
+                  >
+                    Buka
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+          {patients.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={4} style={{ textAlign: 'center', padding: '24px' }}>
+                <Text>Tidak ada pasien yang ditemukan.</Text>
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}

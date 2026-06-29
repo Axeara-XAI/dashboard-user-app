@@ -1,8 +1,13 @@
 'use client';
 
 import React from 'react';
-import { makeStyles, tokens, Button, Text, Card, CardHeader, CardPreview, Badge } from '@fluentui/react-components';
-import { DocumentArrowDownRegular, CalendarLtrRegular, BeakerRegular } from '@fluentui/react-icons';
+import { makeStyles } from '@fluentui/react-components';
+import { PatientContainer } from './directory-parts/DirectoryTable';
+
+// 1. Kita import ketiga potongan halaman Profil Pasien
+import AssessmentHeader from './assessment-parts/AssessmentHeader';
+import PatientProfileCard from './assessment-parts/PatientProfileCard';
+import AssessmentTable from './assessment-parts/AssessmentTable'; 
 
 const useStyles = makeStyles({
   listContainer: {
@@ -44,38 +49,15 @@ const useStyles = makeStyles({
     flexDirection: 'column',
     gap: '8px',
   },
-  probabilityText: {
-    fontSize: '24px',
-    fontWeight: 'bold',
-  },
-  narrativeText: {
-    color: tokens.colorNeutralForeground2,
-    lineHeight: '1.5',
-    textAlign: 'justify'
-  },
-  actionArea: {
-    display: 'flex',
-    justifyContent: 'flex-end',
-    marginTop: '16px',
-    paddingTop: '16px',
-    borderTop: `1px dashed ${tokens.colorNeutralStroke2}`,
-  }
 });
 
-// Tipe data disesuaikan dengan struktur ERD
-export interface AssessmentRecord {
-  id: number;
-  date: string;
-  probability: number;
-  riskLabel: string;
-  narrative: string;
-}
-
 interface AssessmentListProps {
-  assessments: AssessmentRecord[];
+  patient: PatientContainer | null | undefined; 
+  onBack: () => void;        
+  onNewAnalysis: () => void; 
 }
 
-export default function AssessmentList({ assessments }: AssessmentListProps) {
+export default function AssessmentList({ patient, onBack, onNewAnalysis }: AssessmentListProps) {
   const styles = useStyles();
 
   const handleExportSession = (id: number, date: string, record: AssessmentRecord) => {
@@ -151,45 +133,12 @@ export default function AssessmentList({ assessments }: AssessmentListProps) {
   };
 
   return (
-    <div className={styles.listContainer}>
-      <Text size={500} weight="semibold" style={{ marginBottom: '8px' }}>Histori Pemeriksaan Kehamilan</Text>
+    <div className={styles.container}>
+      {/* Tombol "Kembali ke Daftar Pasien" */}
+      <AssessmentHeader onBack={onBack} />
       
-      {assessments.map((record) => (
-        <Card key={record.id} className={styles.card}>
-          <div className={styles.cardHeader}>
-            <div className={styles.dateWrapper}>
-              <CalendarLtrRegular />
-              <Text>{record.date}</Text>
-            </div>
-            <Badge 
-              color={record.riskLabel === 'FGR' ? 'danger' : 'success'}
-              appearance="filled"
-            >
-              Status: {record.riskLabel}
-            </Badge>
-          </div>
-
-          <div className={styles.contentGrid}>
-            <div className={styles.resultBox}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <BeakerRegular />
-                <Text weight="semibold">Probabilitas FGR</Text>
-              </div>
-              <Text 
-                className={styles.probabilityText}
-                style={{ color: record.probability >= 50 ? tokens.colorPaletteRedForeground1 : tokens.colorPaletteGreenForeground1 }}
-              >
-                {record.probability}%
-              </Text>
-            </div>
-            
-            <div>
-              <Text weight="semibold" style={{ display: 'block', marginBottom: '8px' }}>Kesimpulan Klinis AI:</Text>
-              <Text className={styles.narrativeText}>
-                {record.narrative}
-              </Text>
-            </div>
-          </div>
+      {/* Kartu Profil (Siti Aminah, No RM, dll) */}
+      <PatientProfileCard patient={patient} />
 
           <div className={styles.actionArea}>
             <Button 
