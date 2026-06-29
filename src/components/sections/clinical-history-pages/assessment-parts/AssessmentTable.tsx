@@ -6,7 +6,7 @@ import {
   TableHeaderCell, TableBody, TableCell, Badge, Spinner 
 } from '@fluentui/react-components';
 import { AddRegular, DocumentRegular } from '@fluentui/react-icons';
-import { AssessmentRecord } from '../../../../app/dashboard/clinical-history/page';
+import { AssessmentRecord } from '../clinical-history-pages';
 
 const useStyles = makeStyles({
   wrapperSolid: { display: 'flex', flexDirection: 'column', gap: '16px', width: '100%', marginTop: '8px' },

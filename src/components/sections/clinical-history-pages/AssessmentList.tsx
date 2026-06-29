@@ -6,7 +6,7 @@ import { PatientContainer } from './directory-parts/DirectoryTable';
 import AssessmentHeader from './assessment-parts/AssessmentHeader';
 import PatientProfileCard from './assessment-parts/PatientProfileCard';
 import AssessmentTable from './assessment-parts/AssessmentTable'; 
-import { AssessmentRecord } from '../../../app/dashboard/clinical-history/page';
+import { AssessmentRecord } from './clinical-history-pages';
 
 const useStyles = makeStyles({
   container: { 
