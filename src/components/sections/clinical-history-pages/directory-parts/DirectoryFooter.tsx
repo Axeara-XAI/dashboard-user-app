@@ -50,7 +50,7 @@ export default function DirectoryFooter({ totalPatients }: DirectoryFooterProps)
 
   return (
     <div className={styles.footerSection}>
-      <Text size={200} style={{ color: tokens.colorNeutralForeground3 }}>
+      <Text size={300} style={{ color: tokens.colorNeutralForeground3 }}>
         Menampilkan 1 - {totalPatients} dari {totalPatients} data.
       </Text>
 
@@ -71,7 +71,7 @@ export default function DirectoryFooter({ totalPatients }: DirectoryFooterProps)
             <Button appearance="subtle" size="small" icon={<ChevronLeftRegular />} disabled>
               Sebel.
             </Button>
-            <Text size={200} weight="semibold" style={{ padding: '0 8px' }}>1</Text>
+            <Text size={300} weight="semibold" style={{ padding: '0 8px' }}>1</Text>
             <Button appearance="subtle" size="small" icon={<ChevronRightRegular />} iconPosition="after">
               Selanj.
             </Button>

@@ -85,7 +85,7 @@ export default function AnalysisFooter({
           Previous
         </Button>
 
-        {/* PERBAIKAN: Tombol "Simpan Data" akan muncul di langkah ke-4 */}
+        {/* PERBAIKAN: Tombol "Simpan Data" akan muncul di langkah terakhir */}
         {currentStep === 4 ? (
           <Button 
             appearance="primary" 
@@ -104,11 +104,8 @@ export default function AnalysisFooter({
         )}
       </div>
 
-      {/* --- RIGHT: FEEDBACK LINK --- */}
-      <div className={styles.feedbackLink}>
-        <PersonFeedback20Regular />
-        <span>Berikan umpan balik</span>
-      </div>
+      {/* --- RIGHT: EMPTY SECTION FOR ALIGNMENT --- */}
+      <div></div>
       
     </div>
   );

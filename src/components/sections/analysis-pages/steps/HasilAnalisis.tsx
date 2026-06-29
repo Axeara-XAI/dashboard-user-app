@@ -129,7 +129,7 @@ const useStyles = makeStyles({
     padding: '6px 8px',
     backgroundColor: tokens.colorNeutralBackground2,
     borderRadius: tokens.borderRadiusSmall,
-    fontSize: '13px',
+    fontSize: '15px',
   },
   diceArrow: {
     color: tokens.colorBrandForeground1,
@@ -410,10 +410,10 @@ export default function HasilAnalisis({ formData, onApiDataLoaded }: StepProps) 
                 {/* Task 4: Confidence Bar */}
                 <div className={styles.confidenceBarWrapper}>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Text size={200} style={{ color: tokens.colorNeutralForeground2 }}>
+                    <Text size={300} style={{ color: tokens.colorNeutralForeground2 }}>
                       Probabilitas FGR
                     </Text>
-                    <Text size={200} weight="semibold">
+                    <Text size={300} weight="semibold">
                       {probPercent}%
                     </Text>
                   </div>
@@ -525,7 +525,7 @@ export default function HasilAnalisis({ formData, onApiDataLoaded }: StepProps) 
           <p className={styles.sectionTitle}>
             <CheckmarkCircleRegular /> Skenario Intervensi Klinis (DiCE Counterfactual)
           </p>
-          <Text size={200} style={{ color: tokens.colorNeutralForeground2, marginBottom: '8px', display: 'block' }}>
+          <Text size={300} style={{ color: tokens.colorNeutralForeground2, marginBottom: '8px', display: 'block' }}>
             Berikut adalah skenario perubahan variabel yang dapat diintervensi untuk menurunkan risiko FGR.
             Semakin besar persentase penurunan risiko, semakin efektif intervensi tersebut.
           </Text>
@@ -537,7 +537,7 @@ export default function HasilAnalisis({ formData, onApiDataLoaded }: StepProps) 
                 {/* Header kartu: Nomor Skenario + Penurunan Risiko */}
                 <div className={styles.diceCardHeader}>
                   <div>
-                    <Text size={200} style={{ color: tokens.colorNeutralForeground3 }}>
+                    <Text size={300} style={{ color: tokens.colorNeutralForeground3 }}>
                       Skenario {scenario.scenario_id}
                     </Text>
                     <Text weight="semibold" block>
@@ -566,7 +566,7 @@ export default function HasilAnalisis({ formData, onApiDataLoaded }: StepProps) 
                           <Text size={100} style={{ color: tokens.colorPaletteRedForeground1, fontWeight: '600' }}>
                             {change.from}
                           </Text>
-                          <ArrowRightRegular className={styles.diceArrow} style={{ fontSize: '12px' }} />
+                          <ArrowRightRegular className={styles.diceArrow} style={{ fontSize: '14px' }} />
                           <Text size={100} style={{ color: tokens.colorPaletteGreenForeground1, fontWeight: '600' }}>
                             {change.to}
                           </Text>
@@ -578,11 +578,11 @@ export default function HasilAnalisis({ formData, onApiDataLoaded }: StepProps) 
 
                 {/* Footer kartu: Probabilitas baru */}
                 <div className={styles.diceNewProb}>
-                  <Text size={200} style={{ color: tokens.colorNeutralForeground2 }}>
+                  <Text size={300} style={{ color: tokens.colorNeutralForeground2 }}>
                     Probabilitas FGR baru:
                   </Text>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Text size={200} weight="semibold" style={{ color: tokens.colorPaletteGreenForeground1 }}>
+                    <Text size={300} weight="semibold" style={{ color: tokens.colorPaletteGreenForeground1 }}>
                       {Math.round(scenario.new_probability_fgr * 100)}%
                     </Text>
                     <Badge color="success" appearance="filled" size="small">

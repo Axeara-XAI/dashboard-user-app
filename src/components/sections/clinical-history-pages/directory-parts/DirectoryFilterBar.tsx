@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { makeStyles, tokens, Input, Text, Button } from '@fluentui/react-components';
-import { SearchRegular, DismissRegular, AddRegular } from '@fluentui/react-icons';
+import { makeStyles, Input } from '@fluentui/react-components';
+import { SearchRegular } from '@fluentui/react-icons';
 
 const useStyles = makeStyles({
   filterArea: {
@@ -13,47 +13,27 @@ const useStyles = makeStyles({
     flexWrap: 'wrap',
   },
   filterInput: {
-    minWidth: '240px',
-  },
-  activeFilterBadge: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    backgroundColor: tokens.colorNeutralBackground1,
-    padding: '2px 10px',
-    borderRadius: '16px',
-    fontSize: '13px',
-    border: `1px solid ${tokens.colorNeutralStroke1}`,
-  },
-  boldText: {
-    fontWeight: '600',
-  },
-  blueIcon: {
-    color: tokens.colorBrandForeground1,
+    minWidth: '300px',
   },
 });
 
-export default function DirectoryFilterBar() {
+interface DirectoryFilterBarProps {
+  searchQuery: string;
+  onSearchChange: (value: string) => void;
+}
+
+export default function DirectoryFilterBar({ searchQuery, onSearchChange }: DirectoryFilterBarProps) {
   const styles = useStyles();
 
   return (
     <div className={styles.filterArea}>
       <Input 
         className={styles.filterInput}
-        placeholder="Cari sumber daya, pasien, dan No. RM..." 
+        placeholder="Cari berdasarkan nama pasien atau No. RM..." 
         contentBefore={<SearchRegular />} 
+        value={searchQuery}
+        onChange={(e) => onSearchChange(e.target.value)}
       />
-      
-      <div className={styles.activeFilterBadge}>
-        <Text>Status Kehamilan <span className={styles.boldText}>sama dengan</span> Aktif</Text>
-        <Button icon={<DismissRegular />} appearance="transparent" size="small" style={{ minWidth: 'auto', padding: '2px' }} />
-      </div>
-      <div className={styles.activeFilterBadge}>
-        <Text>Risiko FGR <span className={styles.boldText}>sama dengan</span> Semua</Text>
-        <Button icon={<DismissRegular />} appearance="transparent" size="small" style={{ minWidth: 'auto', padding: '2px' }} />
-      </div>
-
-      <Button appearance="subtle" icon={<AddRegular className={styles.blueIcon} />}>Tambahkan filter</Button>
     </div>
   );
 }

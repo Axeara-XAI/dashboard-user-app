@@ -19,7 +19,6 @@ export default function DashboardPage() {
   return (
     <div className={styles.dashboardContainer}>
       <ServicesSection />
-      <RecentHistorySection />
     </div>
   );
 }

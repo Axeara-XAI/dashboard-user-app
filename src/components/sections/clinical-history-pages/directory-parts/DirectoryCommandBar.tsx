@@ -3,8 +3,7 @@
 import React from 'react';
 import { makeStyles, tokens, Button } from '@fluentui/react-components';
 import { 
-  PlayRegular, 
-  DeleteRegular, 
+  AddRegular, 
   ArrowClockwiseRegular, 
   DocumentArrowDownRegular 
 } from '@fluentui/react-icons';
@@ -30,16 +29,27 @@ const useStyles = makeStyles({
   },
 });
 
-export default function DirectoryCommandBar() {
+interface DirectoryCommandBarProps {
+  onNew: () => void;
+  onRefresh?: () => void;
+  onExportCSV: () => void;
+}
+
+export default function DirectoryCommandBar({ onNew, onRefresh, onExportCSV }: DirectoryCommandBarProps) {
   const styles = useStyles();
 
   return (
     <div className={styles.commandBar}>
-      <Button appearance="transparent" icon={<PlayRegular className={styles.blueIcon} />}>Mulai Analisis</Button>
-      <Button appearance="transparent" icon={<DeleteRegular className={styles.blueIcon} />}>Hapus</Button>
+      <Button appearance="transparent" icon={<AddRegular className={styles.blueIcon} />} onClick={onNew}>
+        Buat Baru
+      </Button>
       <div className={styles.divider} />
-      <Button appearance="transparent" icon={<ArrowClockwiseRegular className={styles.blueIcon} />}>Refresh</Button>
-      <Button appearance="transparent" icon={<DocumentArrowDownRegular className={styles.blueIcon} />}>Ekspor ke CSV</Button>
+      <Button appearance="transparent" icon={<ArrowClockwiseRegular className={styles.blueIcon} />} onClick={onRefresh}>
+        Refresh
+      </Button>
+      <Button appearance="transparent" icon={<DocumentArrowDownRegular className={styles.blueIcon} />} onClick={onExportCSV}>
+        Ekspor ke CSV
+      </Button>
     </div>
   );
 }

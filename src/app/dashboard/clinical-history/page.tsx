@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { makeStyles, tokens, Button, Spinner, Text } from '@fluentui/react-components';
+import { makeStyles, tokens, Button, Spinner, Text, Title3, Link, Body1 } from '@fluentui/react-components';
+import { ArrowLeftRegular, ArrowLeft24Regular } from '@fluentui/react-icons';
+import { useRouter } from 'next/navigation';
 import {
   AssessmentList,
   PatientDirectory,
@@ -18,6 +20,10 @@ const useStyles = makeStyles({
     minHeight: 'calc(100vh - 56px)',
     backgroundColor: tokens.colorNeutralBackground1,
   },
+  backButton: {
+    marginBottom: '24px',
+    alignSelf: 'flex-start',
+  },
   centerContainer: {
     display: 'flex',
     flexDirection: 'column',
@@ -26,6 +32,31 @@ const useStyles = makeStyles({
     flex: 1,
     gap: '16px',
     padding: '60px 0',
+  },
+  header: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '16px',
+    paddingBottom: '16px',
+    marginBottom: '16px',
+    borderBottom: `1px solid ${tokens.colorNeutralStroke1}`
+  },
+  breadcrumb: {
+    fontSize: '14px',
+    color: tokens.colorNeutralForeground2,
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    marginBottom: '16px',
+  },
+  breadcrumbLink: {
+    color: tokens.colorNeutralForeground2,
+    cursor: 'pointer',
+    textDecoration: 'none',
+    ':hover': {
+      color: tokens.colorBrandForeground1,
+      textDecoration: 'underline',
+    },
   },
 });
 
@@ -83,6 +114,7 @@ function mapToAssessmentRecord(raw: any): AssessmentRecord {
 // ============================================================================
 export default function ClinicalHistoryPage() {
   const styles = useStyles();
+  const router = useRouter();
 
   const [selectedPatient, setSelectedPatient] = useState<PatientContainer | null>(null);
 
@@ -96,23 +128,24 @@ export default function ClinicalHistoryPage() {
   const [isAssessmentsLoading, setIsAssessmentsLoading] = useState(false);
   const [assessmentsError, setAssessmentsError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchPatients = async () => {
-      setIsPatientsLoading(true);
-      setPatientsError(null);
-      try {
-        const res = await fetch('/api/get-patients');
-        const json = await res.json();
-        if (!json.success) throw new Error(json.message);
-        setPatients(json.data.map(mapToPatientContainer));
-      } catch (err: any) {
-        setPatientsError(err.message || 'Gagal memuat daftar pasien.');
-      } finally {
-        setIsPatientsLoading(false);
-      }
-    };
-    fetchPatients();
+  const fetchPatients = useCallback(async () => {
+    setIsPatientsLoading(true);
+    setPatientsError(null);
+    try {
+      const res = await fetch('/api/get-patients');
+      const json = await res.json();
+      if (!json.success) throw new Error(json.message);
+      setPatients(json.data.map(mapToPatientContainer));
+    } catch (err: any) {
+      setPatientsError(err.message || 'Gagal memuat daftar pasien.');
+    } finally {
+      setIsPatientsLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchPatients();
+  }, [fetchPatients]);
 
   const handleSelectPatient = useCallback(async (patient: PatientContainer) => {
     setSelectedPatient(patient);
@@ -134,6 +167,21 @@ export default function ClinicalHistoryPage() {
 
   return (
     <div className={styles.pageContainer}>
+      <div className={styles.breadcrumb}>
+        <Link className={styles.breadcrumbLink} onClick={() => router.push('/dashboard')}>
+          Beranda
+        </Link>
+        <span>&gt;</span>
+        <span>Riwayat Klinis</span>
+      </div>
+
+      <div className={styles.header}>
+        <Button appearance="subtle" icon={<ArrowLeft24Regular />} onClick={() => router.back()} />
+        <div>
+          <Title3>Riwayat Klinis Pasien</Title3>
+          <Body1 style={{ display: 'block', color: tokens.colorNeutralForeground3 }}>Sistem Manajemen Rekam Medis</Body1>
+        </div>
+      </div>
 
       {/* TAMPILAN JIKA BELUM ADA PASIEN YANG DIPILIH */}
       {!selectedPatient && (
@@ -152,23 +200,38 @@ export default function ClinicalHistoryPage() {
           )}
 
           {!isPatientsLoading && !patientsError && (
-            <PatientDirectory patients={patients} onSelectPatient={handleSelectPatient} />
+            <PatientDirectory
+              patients={patients}
+              onSelectPatient={handleSelectPatient}
+              onRefresh={fetchPatients}
+            />
           )}
         </>
       )}
 
       {/* TAMPILAN PROFIL PASIEN (KOMPONEN BARU KITA) */}
       {selectedPatient && (
-        <AssessmentList 
-          patient={selectedPatient}
-          onBack={() => setSelectedPatient(null)}
-          onNewAnalysis={() => alert('Buka form analisis baru!')}
-          
-          // Melempar data API ke dalam AssessmentList
-          assessments={assessments}
-          isLoading={isAssessmentsLoading}
-          error={assessmentsError}
-        />
+        <>
+          <Button
+            appearance="subtle"
+            icon={<ArrowLeftRegular />}
+            onClick={() => setSelectedPatient(null)}
+            className={styles.backButton}
+          >
+            Kembali ke Daftar Pasien
+          </Button>
+
+          <AssessmentList 
+            patient={selectedPatient}
+            onBack={() => setSelectedPatient(null)}
+            onNewAnalysis={() => router.push('/dashboard/analysis')}
+            
+            // Melempar data API ke dalam AssessmentList
+            assessments={assessments}
+            isLoading={isAssessmentsLoading}
+            error={assessmentsError}
+          />
+        </>
       )}
 
     </div>

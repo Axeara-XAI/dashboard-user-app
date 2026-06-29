@@ -175,9 +175,12 @@ export default function RiwayatKesehatanIbu({ data, updateFields }: StepProps) {
               step="0.1"
               min={0}
               onKeyDown={(e) => { if (['e', 'E', '+', '-'].includes(e.key)) e.preventDefault(); }}
-              value={data.hemoglob === '' ? '0' : data.hemoglob} 
+              value={data.hemoglob === '' ? '' : data.hemoglob} 
               onChange={(e) => {
-                const val = e.target.value;
+                let val = e.target.value;
+                if (val.length > 1 && val.startsWith('0') && !val.startsWith('0.')) {
+                  val = val.replace(/^0+/, '');
+                }
                 if (val === '' || Number(val) >= 0) updateFields({ hemoglob: val });
               }}
               onBlur={() => { if (data.hemoglob === '') updateFields({ hemoglob: '0' }); }}

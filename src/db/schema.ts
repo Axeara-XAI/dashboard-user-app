@@ -105,3 +105,18 @@ export const diceChanges = sqliteTable('dice_changes', {
   originalValue: real('original_value').notNull(),
   newValue: real('new_value').notNull(),
 });
+
+// ============================================================================
+// 7. TABLE TICKETS (Sistem Bantuan)
+// ============================================================================
+export const tickets = sqliteTable('tickets', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  ticketCode: text('ticket_code').notNull().unique(), // Format: TKT-XXXXXX
+  subject: text('subject').notNull(),
+  message: text('message').notNull(),
+  submittedBy: text('submitted_by').notNull().default('Guest'),
+  status: text('status').notNull().default('open'), // open | in_progress | resolved
+  adminReply: text('admin_reply'),
+  createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`),
+});

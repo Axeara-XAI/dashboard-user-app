@@ -5,7 +5,8 @@ import {
   makeStyles, tokens, Table, TableHeader, TableRow, 
   TableHeaderCell, TableBody, TableCell, Avatar, Text, Button 
 } from '@fluentui/react-components';
-import { PersonRegular, ArrowRightRegular } from '@fluentui/react-icons';
+import { PersonRegular, ArrowRightRegular, EditRegular, DeleteRegular } from '@fluentui/react-icons';
+import { useRouter } from 'next/navigation';
 
 const useStyles = makeStyles({
   tableContainer: {
@@ -23,17 +24,8 @@ const useStyles = makeStyles({
       backgroundColor: tokens.colorNeutralBackground1Hover,
     }
   },
-  statusBadge: {
-    backgroundColor: tokens.colorPaletteGreenBackground1,
-    color: tokens.colorPaletteGreenForeground1,
-    padding: '2px 8px',
-    borderRadius: '4px',
-    fontSize: '12px',
-    fontWeight: '500',
-  },
 });
 
-// PASTIKAN BARIS INI ADA KATA "export" AGAR BISA DIBACA FILE LAIN
 export interface PatientContainer {
   id: string;
   name: string;
@@ -45,21 +37,21 @@ export interface PatientContainer {
 interface DirectoryTableProps {
   patients: PatientContainer[];
   onSelectPatient: (patient: PatientContainer) => void;
+  onRefresh?: () => void;
 }
 
-export default function DirectoryTable({ patients, onSelectPatient }: DirectoryTableProps) {
+export default function DirectoryTable({ patients, onSelectPatient, onRefresh }: DirectoryTableProps) {
   const styles = useStyles();
+  const router = useRouter();
 
   return (
     <div className={styles.tableContainer}>
-      <Table aria-label="Daftar Pasien" style={{ minWidth: '800px' }}>
+      <Table aria-label="Daftar Pasien" style={{ minWidth: '700px' }}>
         <TableHeader>
           <TableRow>
             <TableHeaderCell>Nama Pasien</TableHeaderCell>
             <TableHeaderCell>No. Rekam Medis</TableHeaderCell>
-            <TableHeaderCell>Tanggal Lahir</TableHeaderCell>
             <TableHeaderCell>Kunjungan Terakhir</TableHeaderCell>
-            <TableHeaderCell>Status</TableHeaderCell>
             <TableHeaderCell>Aksi</TableHeaderCell>
           </TableRow>
         </TableHeader>
@@ -78,26 +70,63 @@ export default function DirectoryTable({ patients, onSelectPatient }: DirectoryT
                 </div>
               </TableCell>
               <TableCell>{patient.mrn}</TableCell>
-              <TableCell>{patient.dob.split('(')[0].trim()}</TableCell>
               <TableCell>{patient.lastVisit}</TableCell>
               <TableCell>
-                <span className={styles.statusBadge}>Aktif</span>
-              </TableCell>
-              <TableCell>
-                <Button 
-                  appearance="subtle" 
-                  icon={<ArrowRightRegular />} 
-                  iconPosition="after"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onSelectPatient(patient);
-                  }}
-                >
-                  Buka
-                </Button>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <Button 
+                    appearance="subtle" 
+                    icon={<EditRegular />} 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      router.push(`/dashboard/analysis?editId=${patient.id}`);
+                    }}
+                  >
+                    Edit
+                  </Button>
+                  <Button 
+                    appearance="subtle" 
+                    style={{ color: tokens.colorPaletteRedForeground1 }}
+                    icon={<DeleteRegular />} 
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      if (confirm(`Apakah Anda yakin ingin menghapus data pasien ${patient.name}?`)) {
+                        try {
+                          const res = await fetch(`/api/delete-patient/${patient.id}`, { method: 'DELETE' });
+                          const json = await res.json();
+                          if (json.success) {
+                            if (onRefresh) onRefresh();
+                          } else {
+                            alert('Gagal menghapus: ' + json.message);
+                          }
+                        } catch (err) {
+                          alert('Terjadi kesalahan saat menghapus data.');
+                        }
+                      }
+                    }}
+                  >
+                    Hapus
+                  </Button>
+                  <Button 
+                    appearance="subtle" 
+                    icon={<ArrowRightRegular />} 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSelectPatient(patient);
+                    }}
+                  >
+                    Buka
+                  </Button>
+                </div>
               </TableCell>
             </TableRow>
           ))}
+          {patients.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={4} style={{ textAlign: 'center', padding: '24px' }}>
+                <Text>Tidak ada pasien yang ditemukan.</Text>
+              </TableCell>
+            </TableRow>
+          )}
         </TableBody>
       </Table>
     </div>

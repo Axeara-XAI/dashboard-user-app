@@ -22,7 +22,14 @@ const useStyles = makeStyles({
   labelWrapper: { display: 'flex', alignItems: 'center', gap: '4px' },
   inputWrapper: { display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-start', width: '100%' },
   inputField: { width: '100%' },
-  educationWrapper: { display: 'flex', gap: '8px', width: '100%' }, 
+  educationWrapper: { 
+    display: 'flex', 
+    gap: '8px', 
+    width: '100%',
+    '@media (max-width: 768px)': {
+      flexDirection: 'column',
+    }
+  },
   educationDropdown: { flexGrow: 1, flexBasis: 0, minWidth: 0 },
   dropdownListbox: { 
     height: '150px', 

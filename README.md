@@ -1,131 +1,154 @@
 # Axara XAI - Pregnancy Analysis Dashboard
 
-Axara XAI is an advanced, industry-grade clinical dashboard designed for obstetricians, midwives, and healthcare administrators. The platform integrates machine learning models to predict the risk of Fetal Growth Restriction (FGR) and utilizes Explainable AI (XAI) techniques (such as SHAP and DiCE) to provide transparent, interpretable, and actionable insights to clinical professionals.
+Dashboard klinis AXARA untuk input data maternal, menjalankan analisis risiko Fetal Growth Restriction (FGR), menampilkan hasil Explainable AI, dan menyimpan riwayat analisis. Project ini berdiri terpisah dari landing page, auth portal, dan backend AI agar dapat dideploy pada subdomain sendiri, misalnya `dashboard.axara.id`.
 
----
+Status saat ini: dashboard sudah dapat membentuk payload analisis, memanggil backend Flask melalui `NEXT_PUBLIC_API_URL`, menampilkan hasil, dan menyimpan data ke Turso/LibSQL. Integrasi login/session belum tersedia.
 
-## 🚀 Key Features
+## Key Features
 
-* **Multi-Step Clinical Analysis Form**: A structured multi-step form to input maternal demographics, socioeconomic history, medical background, and fetal biometric data.
-* **Explainable AI (XAI) Integration**:
-  * **SHAP Explanations**: Quantifies feature contributions to FGR risk, indicating which clinical factors increase or decrease the risk.
-  * **DiCE Counterfactual Scenarios**: Suggests actionable, alternative clinical scenarios (e.g., changes in maternal weight gain, habits, or visits) to demonstrate how risk labels could be reduced or optimized.
-* **Patient Clinical History Directory**: A comprehensive dashboard allowing clinicians to view, search, and manage historical patient visits and AI diagnostic results.
-* **PDF Report Generation**: Exportable summary reports for patients' medical history and individual analysis sessions.
-* **Robust Database Integration**: Structured Schema powered by **Drizzle ORM** and **Turso (LibSQL)**.
+- Multi-step clinical analysis form.
+- Integrasi AI backend untuk prediksi risiko FGR.
+- SHAP explanations untuk kontribusi fitur.
+- DiCE counterfactual scenarios untuk skenario intervensi.
+- Patient clinical history directory.
+- Penyimpanan data memakai Drizzle ORM dan Turso/LibSQL.
+- API route lokal Next.js untuk simpan, ambil, hapus, dan statistik data assessment.
 
----
+## Current Integration Flow
 
-## 🧱 Tech Stack
+1. User membuka halaman dashboard analysis.
+2. User mengisi form multi-step.
+3. `HasilAnalisis.tsx` mengubah data form menjadi payload backend AXARA.
+4. Dashboard memanggil `POST /api/analyze` pada backend Flask.
+5. Hasil prediksi, SHAP, DiCE, dan narasi ditampilkan.
+6. Tombol simpan mengirim `formData` dan `apiData` ke `/api/save-analysis`.
+7. API route Next.js menyimpan data ke tabel `patients`, `assessments`, `assessment_results`, `shap_explanations`, `dice_scenarios`, dan `dice_changes`.
+
+## Tech Stack
 
 | Component | Technology | Description |
-| :--- | :--- | :--- |
-| **Framework** | Next.js 14 (App Router) | Handles routing, SSR, API routes, and optimized assets. |
-| **Library** | React 18 & TypeScript | Component-driven UI development with strict typing. |
-| **UI Components** | Fluent UI React | Official Microsoft UI library (`@fluentui/react-components`) for professional design. |
-| **Icons** | Fluent UI Icons | Iconography package from Microsoft (`@fluentui/react-icons`). |
-| **ORM** | Drizzle ORM | Modern, type-safe SQL query builder. |
-| **Database** | Turso / LibSQL | Edge-optimized SQLite database for reliable data persistence. |
+|---|---|---|
+| Framework | Next.js 16 App Router | Routing, API routes, SSR, dan asset optimization |
+| Library | React 19 & TypeScript | Component-driven UI dengan typing |
+| UI Components | Fluent UI React | Komponen UI Microsoft Fluent |
+| Icons | Fluent UI Icons | Paket ikon Microsoft |
+| ORM | Drizzle ORM | Type-safe SQL query builder |
+| Database | Turso / LibSQL | SQLite-compatible database |
+| AI Backend | Flask API | Service eksternal dari `axara_backend` |
 
----
-
-## 🗂️ Project Structure
+## Project Structure
 
 ```text
-📦 demo-dashboard
- ┣ 📂 src
- ┃ ┣ 📂 app
- ┃ ┃ ┣ 📂 api
- ┃ ┃ ┃ ┗ 📂 save-analysis            # API route to save clinical assessments
- ┃ ┃ ┣ 📂 dashboard
- ┃ ┃ ┃ ┣ 📂 analysis                # Multi-step pregnancy assessment form page
- ┃ ┃ ┃ ┣ 📂 clinical-history         # Patient directory & clinical history page
- ┃ ┃ ┃ ┣ 📜 layout.tsx              # Dashboard layout (Shell & Navigation)
- ┃ ┃ ┃ ┗ 📜 page.tsx                # Dashboard landing page
- ┃ ┃ ┣ 📜 layout.tsx                # Root layout
- ┃ ┃ ┣ 📜 providers.tsx             # Fluent UI Providers setup
- ┃ ┃ ┗ 📜 globals.css               # Global CSS styling
- ┃ ┣ 📂 components
- ┃ ┃ ┣ 📂 layout                    # Layout components (e.g., Navbar)
- ┃ ┃ ┣ 📂 sections                  # Modular page sections (dashboard, analysis, clinical history)
- ┃ ┃ ┣ 📂 theme                     # Design system customization (AxaraTheme)
- ┃ ┃ ┗ 📂 ui                        # Reusable global UI elements (AlertModal)
- ┃ ┣ 📂 db
- ┃ ┃ ┣ 📜 index.ts                  # DB connection initialization
- ┃ ┃ ┗ 📜 schema.ts                 # Database relational schema (SQLite/LibSQL)
- ┃ ┗ 📂 type
- ┃ ┃ ┗ 📜 analysis.ts               # Core TypeScript types for assessments
- ┣ 📜 drizzle.config.ts             # Drizzle ORM migration configuration
- ┣ 📜 next.config.mjs               # Next.js configuration
- ┣ 📜 package.json                  # Dependencies & scripts
- ┗ 📜 tsconfig.json                 # TypeScript compiler configuration
+demo-dashboard-app/
+|-- src/
+|   |-- app/
+|   |   |-- api/
+|   |   |   |-- save-analysis/
+|   |   |   |-- get-patients/
+|   |   |   |-- get-patient-detail/
+|   |   |   |-- get-assessments/
+|   |   |   |-- get-all-assessments/
+|   |   |   |-- get-stats/
+|   |   |   |-- delete-patient/
+|   |   |   `-- tickets/
+|   |   |-- dashboard/
+|   |   |   |-- analysis/
+|   |   |   |-- clinical-history/
+|   |   |   |-- panduan/
+|   |   |   |-- riwayat-analisis/
+|   |   |   |-- statistik/
+|   |   |   |-- tiket-bantuan/
+|   |   |   |-- layout.tsx
+|   |   |   `-- page.tsx
+|   |   |-- globals.css
+|   |   |-- layout.tsx
+|   |   `-- providers.tsx
+|   |-- components/
+|   |   |-- layout/
+|   |   |-- sections/
+|   |   |-- theme/
+|   |   `-- ui/
+|   |-- db/
+|   |   |-- index.ts
+|   |   `-- schema.ts
+|   `-- type/
+|       `-- analysis.ts
+|-- drizzle.config.ts
+|-- package.json
+`-- tsconfig.json
 ```
 
----
+## Database Architecture
 
-## 🗄️ Database Architecture
+Schema relational dikonfigurasi di `src/db/schema.ts` dan mendukung:
 
-The relational schema is configured in [schema.ts](file:///d:/My%20Project/pkm-site/demo-dashboard/src/db/schema.ts) and supports:
-1. **`patients`**: Stores basic patient records (MRN, Name, DOB).
-2. **`assessments`**: Stores extensive clinical variables including demographics (age, education), lifestyle (smoking, alcohol), clinical history (anemia, diabetes, hypertension), and gestational progress.
-3. **`assessment_results`**: Captures AI model prediction outputs (probability and risk labels like FGR vs. Non-FGR) alongside custom Gemini narrative summaries.
-4. **`shap_explanations`**: Tracks features that contributed to the model output, their values, and their direction (increase vs. decrease risk).
-5. **`dice_scenarios` & `dice_changes`**: Models counterfactual adjustments to clinical features for proactive risk mitigation.
+1. `patients`: data dasar pasien.
+2. `assessments`: variabel input klinis dan maternal.
+3. `assessment_results`: hasil prediksi model dan narasi Gemini.
+4. `shap_explanations`: daftar fitur berpengaruh dari SHAP.
+5. `dice_scenarios`: skenario counterfactual.
+6. `dice_changes`: detail perubahan fitur tiap skenario.
+7. `tickets`: data tiket bantuan.
 
----
-
-## ⚙️ Installation & Configuration
+## Installation & Configuration
 
 ### Prerequisites
-* Node.js (v18.x or later)
-* npm (v9.x or later) or pnpm / yarn
+
+- Node.js 18 atau lebih baru.
+- npm.
 
 ### Steps
 
-1. **Clone the Repository:**
-   ```bash
-   git clone https://github.com/Axeara-XAI/demo-dashboard-app.git
-   cd demo-dashboard-app
-   ```
-
-2. **Install Dependencies:**
-   ```bash
-   npm install
-   ```
-
-3. **Configure Environment Variables:**
-   Create a `.env.local` file in the root directory and configure your database credentials:
-   ```env
-   TURSO_DATABASE_URL=your_turso_db_url
-   TURSO_AUTH_TOKEN=your_turso_auth_token
-   ```
-
-4. **Database Migrations:**
-   Generate and push database changes:
-   ```bash
-   npx drizzle-kit generate
-   npx drizzle-kit push
-   ```
-
-5. **Run the Development Server:**
-   ```bash
-   npm run dev
-   ```
-   Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
----
-
-## 🛠️ Build and Deploy
-
-To build the project for production:
 ```bash
-npm run build
+cd demo-dashboard-app
+npm install
 ```
 
-To run the production bundle locally:
+Buat `.env.local`:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:5000
+TURSO_DATABASE_URL=file:local.db
+TURSO_AUTH_TOKEN=
+```
+
+Untuk production, set `NEXT_PUBLIC_API_URL` ke domain backend API:
+
+```env
+NEXT_PUBLIC_API_URL=https://api.axara.id
+```
+
+Generate dan push perubahan database bila schema berubah:
+
 ```bash
+npx drizzle-kit generate
+npx drizzle-kit push
+```
+
+Jalankan development server:
+
+```bash
+npm run dev
+```
+
+Default: `http://localhost:3000`, atau port lain jika 3000 sudah dipakai.
+
+## Build and Deploy
+
+```bash
+npm run build
 npm run start
 ```
 
-### Deployment
-This project is highly optimized for deployment on **Vercel** but can also be deployed to AWS, Azure, or self-hosted Docker containers.
+Dalam topologi AXARA, deploy app ini pada subdomain dashboard:
+
+```text
+https://dashboard.axara.id
+```
+
+## Known Gaps
+
+- Login/session belum terintegrasi.
+- Dashboard routes belum diproteksi.
+- Identitas user belum terhubung ke field `patients.userId`.
+- Backend auth/API key belum diberlakukan.
