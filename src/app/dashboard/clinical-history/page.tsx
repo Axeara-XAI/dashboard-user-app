@@ -212,15 +212,6 @@ export default function ClinicalHistoryPage() {
       {/* TAMPILAN PROFIL PASIEN (KOMPONEN BARU KITA) */}
       {selectedPatient && (
         <>
-          <Button
-            appearance="subtle"
-            icon={<ArrowLeftRegular />}
-            onClick={() => setSelectedPatient(null)}
-            className={styles.backButton}
-          >
-            Kembali ke Daftar Pasien
-          </Button>
-
           <AssessmentList 
             patient={selectedPatient}
             onBack={() => setSelectedPatient(null)}
