@@ -135,7 +135,7 @@ export default function AnalysisBody({ currentStep, setCurrentStep }: AnalysisBo
     ginjal: false, 
     herpes: false, 
     hydram: false, 
-    rhsen: false, // PERBAIKAN: rhsen sekarang didaftarkan di sini
+    rhsen: false, 
     hemoglob: '0', 
     cervix: false, 
     uterine: false,
@@ -143,6 +143,7 @@ export default function AnalysisBody({ currentStep, setCurrentStep }: AnalysisBo
     bdead: '0', 
     preterm: '0', 
     pinfant: '0',
+    loutcome: '', // PERBAIKAN: Dipindah ke sini sesuai tipe datanya
     
     // Langkah 3: Data Kehamilan Saat Ini
     weeks: '0', 
@@ -151,10 +152,7 @@ export default function AnalysisBody({ currentStep, setCurrentStep }: AnalysisBo
     cignum: '0', 
     drinknum: '0',
     
-    // Langkah 4: Outcome Kehamilan
-    bweight: '0', 
-    loutcome: '', // Wajib diisi
-    sex: ''       // Wajib diisi
+    // PERBAIKAN: Langkah 4 (bweight dan sex) sudah dihapus bersih
   });
 
   // State untuk menangani Data AI dan Proses Penyimpanan

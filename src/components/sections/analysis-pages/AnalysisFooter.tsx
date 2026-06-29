@@ -10,8 +10,8 @@ import { PersonFeedback20Regular } from '@fluentui/react-icons';
 interface AnalysisFooterProps {
   currentStep: number;
   setCurrentStep: (step: number) => void;
-  onSave?: () => void;       // Prop baru: Fungsi untuk mengeksekusi simpan data
-  isSaving?: boolean;        // Prop baru: Status untuk mendisable tombol saat loading
+  onSave?: () => void;       
+  isSaving?: boolean;        
 }
 
 // ============================================================================
@@ -50,24 +50,23 @@ const useStyles = makeStyles({
 export default function AnalysisFooter({ 
   currentStep, 
   setCurrentStep, 
-  onSave,       // Ekstrak prop
-  isSaving      // Ekstrak prop
+  onSave,       
+  isSaving      
 }: AnalysisFooterProps) {
   const styles = useStyles();
 
-  // Logika navigasi antar langkah (Maksimal 5 langkah)
+  // PERBAIKAN: Logika navigasi maksimal diubah menjadi 4 langkah
   const handleNext = () => {
-    if (currentStep < 5) setCurrentStep(currentStep + 1);
+    if (currentStep < 4) setCurrentStep(currentStep + 1);
   };
 
   const handlePrev = () => {
     if (currentStep > 1) setCurrentStep(currentStep - 1);
   };
 
-  // Logika saat tombol submit/simpan diklik pada halaman terakhir
   const handleSubmit = () => {
     if (onSave) {
-      onSave(); // Panggil fungsi simpan yang dilempar dari parent
+      onSave(); 
     } else {
       console.warn('Fungsi onSave belum dihubungkan dari komponen induk!');
     }
@@ -86,12 +85,12 @@ export default function AnalysisFooter({
           Previous
         </Button>
 
-        {/* Jika di langkah 5, tampilkan tombol Simpan. Jika belum, tampilkan tombol Berikutnya */}
-        {currentStep === 5 ? (
+        {/* PERBAIKAN: Tombol "Simpan Data" akan muncul di langkah ke-4 */}
+        {currentStep === 4 ? (
           <Button 
             appearance="primary" 
             onClick={handleSubmit}
-            disabled={isSaving} // Tombol mati saat proses simpan berjalan
+            disabled={isSaving} 
           >
             {isSaving ? 'Menyimpan...' : 'Simpan Data'}
           </Button>

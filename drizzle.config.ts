@@ -1,5 +1,6 @@
 import { defineConfig } from 'drizzle-kit';
 import * as dotenv from 'dotenv';
+
 dotenv.config({ path: '.env.local' });
 
 export default defineConfig({
@@ -7,6 +8,6 @@ export default defineConfig({
   out: './drizzle',
   dialect: 'sqlite',             
   dbCredentials: {
-    url: 'local.db',
+    url: process.env.DATABASE_URL as string,
   },
 });

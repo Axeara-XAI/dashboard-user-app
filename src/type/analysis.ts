@@ -14,7 +14,7 @@ export interface AnalysisFormData {
   racedad: string;
   hispdad: string;
 
-  // Langkah 2: Riwayat Kesehatan Ibu
+  // Langkah 2: Riwayat Kesehatan & Persalinan Ibu
   anemia: boolean;
   jantung: boolean;
   paru: boolean;
@@ -33,6 +33,7 @@ export interface AnalysisFormData {
   bdead: string;
   preterm: string;
   pinfant: string;
+  loutcome: string;
 
   // Langkah 3: Data Kehamilan Saat Ini
   weeks: string;
@@ -40,9 +41,4 @@ export interface AnalysisFormData {
   visits: string;
   cignum: string;
   drinknum: string;
-
-  // Langkah 4: Outcome Kehamilan
-  bweight: string;
-  loutcome: string; 
-  sex: string;
 }

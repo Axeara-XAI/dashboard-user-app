@@ -2,11 +2,8 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { makeStyles, tokens, Button, Spinner, Text } from '@fluentui/react-components';
-import { ArrowLeftRegular } from '@fluentui/react-icons';
 import {
-  HistoryHeader,
   AssessmentList,
-  AssessmentRecord,
   PatientDirectory,
   PatientContainer,
 } from '../../../components/sections/clinical-history-pages/clinical-history-pages';
@@ -21,9 +18,6 @@ const useStyles = makeStyles({
     minHeight: 'calc(100vh - 56px)',
     backgroundColor: tokens.colorNeutralBackground1,
   },
-  backButton: {
-    marginBottom: '24px',
-  },
   centerContainer: {
     display: 'flex',
     flexDirection: 'column',
@@ -35,18 +29,24 @@ const useStyles = makeStyles({
   },
 });
 
+export interface AssessmentRecord {
+  id: string;
+  date: string;
+  probability: number;
+  riskLabel: string;
+  narrative: string;
+}
+
 // ============================================================================
-// HELPERS: Mapping data API → tipe PatientContainer & AssessmentRecord
+// HELPERS: Mapping data API → tipe yang dibutuhkan UI
 // ============================================================================
 function mapToPatientContainer(raw: any): PatientContainer {
-  // Hitung umur dari dateOfBirth jika tersedia
   const dob = raw.dateOfBirth || '1990-01-01';
   const age = new Date().getFullYear() - new Date(dob).getFullYear();
   const formattedDob = new Date(dob).toLocaleDateString('id-ID', {
     day: 'numeric', month: 'long', year: 'numeric'
   });
 
-  // Format tanggal kunjungan terakhir dari createdAt
   const lastVisit = raw.createdAt
     ? new Date(raw.createdAt).toLocaleDateString('id-ID', {
         day: 'numeric', month: 'long', year: 'numeric',
@@ -70,10 +70,10 @@ function mapToAssessmentRecord(raw: any): AssessmentRecord {
     : '-';
 
   return {
-    id: raw.assessmentId,
+    id: String(raw.assessmentId),
     date,
     probability: Math.round((raw.probability ?? 0) * 100),
-    riskLabel: raw.riskLabel ?? 'Unknown',
+    riskLabel: raw.riskLabel ?? 'LOW',
     narrative: raw.narrativeExplanation ?? 'Narasi tidak tersedia.',
   };
 }
@@ -86,17 +86,16 @@ export default function ClinicalHistoryPage() {
 
   const [selectedPatient, setSelectedPatient] = useState<PatientContainer | null>(null);
 
-  // State untuk daftar pasien
+  // State Pasien
   const [patients, setPatients] = useState<PatientContainer[]>([]);
   const [isPatientsLoading, setIsPatientsLoading] = useState(true);
   const [patientsError, setPatientsError] = useState<string | null>(null);
 
-  // State untuk riwayat asesmen pasien yang dipilih
+  // State Asesmen
   const [assessments, setAssessments] = useState<AssessmentRecord[]>([]);
   const [isAssessmentsLoading, setIsAssessmentsLoading] = useState(false);
   const [assessmentsError, setAssessmentsError] = useState<string | null>(null);
 
-  // Fetch daftar semua pasien saat komponen pertama kali dimuat
   useEffect(() => {
     const fetchPatients = async () => {
       setIsPatientsLoading(true);
@@ -112,11 +111,9 @@ export default function ClinicalHistoryPage() {
         setIsPatientsLoading(false);
       }
     };
-
     fetchPatients();
   }, []);
 
-  // Fetch riwayat asesmen saat pasien dipilih
   const handleSelectPatient = useCallback(async (patient: PatientContainer) => {
     setSelectedPatient(patient);
     setAssessments([]);
@@ -138,9 +135,7 @@ export default function ClinicalHistoryPage() {
   return (
     <div className={styles.pageContainer}>
 
-      {/* ============================================================ */}
-      {/* PANEL KIRI: DAFTAR PASIEN                                    */}
-      {/* ============================================================ */}
+      {/* TAMPILAN JIKA BELUM ADA PASIEN YANG DIPILIH */}
       {!selectedPatient && (
         <>
           {isPatientsLoading && (
@@ -151,64 +146,29 @@ export default function ClinicalHistoryPage() {
 
           {patientsError && !isPatientsLoading && (
             <div className={styles.centerContainer}>
-              <Text style={{ color: tokens.colorPaletteRedForeground1 }}>
-                ⚠️ {patientsError}
-              </Text>
+              <Text style={{ color: tokens.colorPaletteRedForeground1 }}>⚠️ {patientsError}</Text>
               <Button onClick={() => window.location.reload()}>Coba Lagi</Button>
             </div>
           )}
 
           {!isPatientsLoading && !patientsError && (
-            <PatientDirectory
-              patients={patients}
-              onSelectPatient={handleSelectPatient}
-            />
+            <PatientDirectory patients={patients} onSelectPatient={handleSelectPatient} />
           )}
         </>
       )}
 
-      {/* ============================================================ */}
-      {/* PANEL KANAN: DETAIL PASIEN + RIWAYAT ASESMEN                 */}
-      {/* ============================================================ */}
+      {/* TAMPILAN PROFIL PASIEN (KOMPONEN BARU KITA) */}
       {selectedPatient && (
-        <>
-          <Button
-            appearance="subtle"
-            icon={<ArrowLeftRegular />}
-            onClick={() => setSelectedPatient(null)}
-            className={styles.backButton}
-          >
-            Kembali ke Daftar Pasien
-          </Button>
-
-          <HistoryHeader patient={selectedPatient} />
-
-          {isAssessmentsLoading && (
-            <div className={styles.centerContainer}>
-              <Spinner size="medium" label="Memuat riwayat pemeriksaan..." />
-            </div>
-          )}
-
-          {assessmentsError && !isAssessmentsLoading && (
-            <div className={styles.centerContainer}>
-              <Text style={{ color: tokens.colorPaletteRedForeground1 }}>
-                ⚠️ {assessmentsError}
-              </Text>
-            </div>
-          )}
-
-          {!isAssessmentsLoading && !assessmentsError && assessments.length === 0 && (
-            <div className={styles.centerContainer}>
-              <Text style={{ color: tokens.colorNeutralForeground3 }}>
-                Belum ada riwayat pemeriksaan untuk pasien ini.
-              </Text>
-            </div>
-          )}
-
-          {!isAssessmentsLoading && !assessmentsError && assessments.length > 0 && (
-            <AssessmentList assessments={assessments} />
-          )}
-        </>
+        <AssessmentList 
+          patient={selectedPatient}
+          onBack={() => setSelectedPatient(null)}
+          onNewAnalysis={() => alert('Buka form analisis baru!')}
+          
+          // Melempar data API ke dalam AssessmentList
+          assessments={assessments}
+          isLoading={isAssessmentsLoading}
+          error={assessmentsError}
+        />
       )}
 
     </div>
