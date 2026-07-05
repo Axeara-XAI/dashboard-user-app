@@ -19,13 +19,8 @@ const useStyles = makeStyles({
     display: 'flex',
     flexDirection: 'column',
     gap: '16px',
-    marginBottom: '32px',
-    padding: '24px 32px 0 32px',
     width: '100%',
-    boxSizing: 'border-box',
-    '@media (max-width: 768px)': {
-      padding: '16px 16px 0 16px',
-    },
+    marginBottom: '48px', // Menambahkan jarak pemisah yang lebar ala Azure
   },
   sectionTitle: {
     fontSize: '20px',
@@ -109,12 +104,12 @@ export default function ServicesSection() {
       description: 'Log lengkap seluruh prediksi FGR yang pernah dilakukan di sistem.',
       href: '/dashboard/analysis-history',
     },
-    {
+    /* {
       name: 'Statistik & Tren',
       icon: <Share24Regular />, 
       description: 'Pantau metrik performa, agregat pasien, dan sebaran prediksi risiko secara keseluruhan.',
       href: '/dashboard/statistisc',
-    },
+    }*/ ,
     {
       name: 'Panduan Klinis',
       icon: <Headset24Regular />,

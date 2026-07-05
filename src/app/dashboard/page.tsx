@@ -2,8 +2,7 @@
 
 import React from 'react';
 import { makeStyles } from '@fluentui/react-components';
-
-import { ServicesSection, RecentHistorySection } from '../../components/sections/dashboard-pages/dashboard-pages';
+import { DashboardMain } from '../../components/sections/dashboard-pages/dashboard-pages';
 
 const useStyles = makeStyles({
   dashboardContainer: {
@@ -18,7 +17,7 @@ export default function DashboardPage() {
 
   return (
     <div className={styles.dashboardContainer}>
-      <ServicesSection />
+      <DashboardMain />
     </div>
   );
 }
