@@ -9,10 +9,9 @@ const useStyles = makeStyles({
   headerSection: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '4px', 
+    gap: '8px', // Mengatur jarak antar elemen secara vertikal
     paddingBottom: '16px',
     marginBottom: '16px',
-    borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
   },
   breadcrumb: {
     color: tokens.colorNeutralForeground3,
@@ -20,13 +19,16 @@ const useStyles = makeStyles({
     display: 'flex',
     alignItems: 'center',
     gap: '4px',
+    marginBottom: '4px',
   },
-  titleRow: {
+  backButtonWrapper: {
     display: 'flex',
     alignItems: 'center',
-    gap: '12px',
-    flexWrap: 'wrap',
+    marginLeft: '-12px', // Menarik tombol sedikit ke kiri agar ikonnya sejajar lurus dengan teks judul di bawahnya
   },
+  pageTitle: {
+    marginTop: '4px', 
+  }
 });
 
 export default function DirectoryHeader() {
@@ -35,21 +37,34 @@ export default function DirectoryHeader() {
 
   return (
     <div className={styles.headerSection}>
+      
+      {/* 1. Breadcrumb di paling atas */}
       <div className={styles.breadcrumb}>
         <Link href="/dashboard">Beranda</Link> <span>&gt;</span> <Text>Riwayat Klinis</Text>
       </div>
       
-      <div className={styles.titleRow}>
+      {/* 2. Tombol panah + Teks "Kembali ke halaman utama" */}
+      <div className={styles.backButtonWrapper}>
         <Button
           appearance="subtle"
           icon={<ArrowLeft24Regular />}
           onClick={() => router.back()}
           aria-label="Kembali"
-        />
-        <Text size={900} weight="semibold" style={{ color: tokens.colorNeutralForeground1 }}>
-          Riwayat Klinis
-        </Text>
+        >
+          Kembali ke halaman utama
+        </Button>
       </div>
+
+      {/* 3. Judul Halaman tepat di bawah tombol kembali */}
+      <Text 
+        size={900} 
+        weight="semibold" 
+        className={styles.pageTitle} 
+        style={{ color: tokens.colorNeutralForeground1 }}
+      >
+        Riwayat Klinis
+      </Text>
+      
     </div>
   );
 }
