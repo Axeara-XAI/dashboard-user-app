@@ -1,0 +1,178 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model assessment_results {
+  id                       Int         @id @default(autoincrement())
+  assessment_id            Int         @unique
+  risk_label               RiskLabel
+  probability              Float
+  narrative_explanation    String
+  narrative_recommendation String
+  assessments              assessments @relation(fields: [assessment_id], references: [id], onDelete: Cascade)
+}
+
+model assessments {
+  id                     Int                 @id @default(autoincrement())
+  patient_id             Int
+  created_at             DateTime            @default(now())
+  mage                   Int
+  fage                   Int
+  gained                 Float
+  hemoglob               Float
+  cignum                 Int                 @default(0)
+  drinknum               Int                 @default(0)
+  visits                 Int                 @default(0)
+  totalp                 Int                 @default(0)
+  bdead                  Int                 @default(0)
+  terms                  Int                 @default(0)
+  preterm                Int                 @default(0)
+  pinfant                Int                 @default(0)
+  meduc                  Int
+  feduc                  Int
+  marital                Int
+  racemom                Int
+  racedad                Int
+  loutcome               Int
+  hispmom                Int
+  hispdad                Int
+  rhsen                  Int
+  anemia                 Int                 @default(0)
+  jantung                Int                 @default(0)
+  paru                   Int                 @default(0)
+  diabetes               Int                 @default(0)
+  herpes                 Int                 @default(0)
+  ginjal                 Int                 @default(0)
+  hipertensi_kronis      Int                 @default(0)
+  hipertensi_gestasional Int                 @default(0)
+  eklamsia               Int                 @default(0)
+  serviks                Int                 @default(0)
+  rahim                  Int                 @default(0)
+  hydram                 Int                 @default(0)
+  assessment_results     assessment_results?
+  patients               patients            @relation(fields: [patient_id], references: [id], onDelete: Cascade)
+  dice_scenarios         dice_scenarios[]
+  shap_explanations      shap_explanations[]
+}
+
+model dice_changes {
+  id             Int            @id @default(autoincrement())
+  scenario_id    Int
+  feature_name   String
+  original_value Float
+  new_value      Float
+  dice_scenarios dice_scenarios @relation(fields: [scenario_id], references: [id], onDelete: Cascade)
+}
+
+model dice_scenarios {
+  id                  Int            @id @default(autoincrement())
+  assessment_id       Int
+  scenario_number     Int
+  new_probability_fgr Float
+  risk_reduction_pct  Float
+  dice_changes        dice_changes[]
+  assessments         assessments    @relation(fields: [assessment_id], references: [id], onDelete: Cascade)
+}
+
+model partner_applications {
+  id               Int               @id @default(autoincrement())
+  institution_name String
+  pic_name         String
+  email            String            @unique
+  phone_number     String
+  address          String
+  status           ApplicationStatus @default(pending)
+  admin_notes      String?
+  created_at       DateTime          @default(now())
+  updated_at       DateTime
+}
+
+model patients {
+  id                    Int           @id @default(autoincrement())
+  user_id               Int
+  patient_name          String
+  date_of_birth         DateTime      @db.Date
+  medical_record_number String        @unique
+  created_at            DateTime      @default(now())
+  assessments           assessments[]
+  users                 users         @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model shap_explanations {
+  id            Int           @id @default(autoincrement())
+  assessment_id Int
+  feature_name  String
+  feature_value Float
+  shap_value    Float
+  direction     ShapDirection
+  rank_order    Int
+  assessments   assessments   @relation(fields: [assessment_id], references: [id], onDelete: Cascade)
+}
+
+model ticket_messages {
+  id         Int      @id @default(autoincrement())
+  ticket_id  Int
+  sender_id  Int
+  message    String
+  created_at DateTime @default(now())
+  users      users    @relation(fields: [sender_id], references: [id], onDelete: Cascade)
+  tickets    tickets  @relation(fields: [ticket_id], references: [id], onDelete: Cascade)
+}
+
+model tickets {
+  id              Int               @id @default(autoincrement())
+  user_id         Int
+  subject         String
+  status          TicketStatus      @default(open)
+  created_at      DateTime          @default(now())
+  updated_at      DateTime
+  ticket_messages ticket_messages[]
+  users           users             @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model users {
+  id              Int               @id @default(autoincrement())
+  email           String            @unique
+  password_hash   String?
+  name            String
+  role            UserRole          @default(user)
+  provider        String            @default("credentials")
+  provider_id     String?
+  created_at      DateTime          @default(now())
+  patients        patients[]
+  ticket_messages ticket_messages[]
+  tickets         tickets[]
+}
+
+enum ApplicationStatus {
+  pending
+  approved
+  rejected
+}
+
+enum RiskLabel {
+  FGR
+  Non_FGR @map("Non-FGR")
+}
+
+enum ShapDirection {
+  increases_risk
+  decreases_risk
+}
+
+enum TicketStatus {
+  open
+  in_progress
+  closed
+}
+
+enum UserRole {
+  user
+  admin
+  mitra
+}

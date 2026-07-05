@@ -107,25 +107,25 @@ export default function ServicesSection() {
       name: 'Riwayat Analisis',
       icon: <Box24Regular />,
       description: 'Log lengkap seluruh prediksi FGR yang pernah dilakukan di sistem.',
-      href: '/dashboard/riwayat-analisis',
+      href: '/dashboard/analysis-history',
     },
     {
       name: 'Statistik & Tren',
-      icon: <Share24Regular />, // Icon lama untuk mempertahankan struktur
+      icon: <Share24Regular />, 
       description: 'Pantau metrik performa, agregat pasien, dan sebaran prediksi risiko secara keseluruhan.',
-      href: '/dashboard/statistik',
+      href: '/dashboard/statistisc',
     },
     {
       name: 'Panduan Klinis',
       icon: <Headset24Regular />,
       description: 'Referensi indikator medis, cara interpretasi model AI, dan pedoman diagnosis.',
-      href: '/dashboard/panduan',
+      href: '/dashboard/guide',
     },
     {
       name: 'Tiket Bantuan',
       icon: <Headset24Regular />,
       description: 'Laporkan kendala teknis atau kirim pertanyaan langsung ke admin sistem.',
-      href: '/dashboard/tiket-bantuan',
+      href: '/dashboard/support-ticket',
     }
   ];
 

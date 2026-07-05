@@ -1,4 +1,8 @@
-# Logs
+# ==============================================================================
+# AXARA DASHBOARD - STANDARD GITIGNORE CONFIGURATION
+# ==============================================================================
+
+# ## Logs & Debugging
 logs
 *.log
 npm-debug.log*
@@ -7,36 +11,34 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Dependencies
+# ## Dependencies & Package Managers
 node_modules
 .pnp
 .pnp.js
 
-# Next.js Build Output
+# ## Build & Compiler Outputs
 .next/
 out/
 build/
-
-# Legacy/General Build (Bawaan sebelumnya, dibiarkan saja)
 dist
 dist-ssr
 
-# Environment Variables
-# Pastikan .env tidak ikut ter-push ke repository publik!
+# ## Environment Variables
+# Crucial: Ensure local env configurations are never pushed to public repositories
 .env
 .env*.local
 .env.development.local
 .env.test.local
 .env.production.local
 
-# Vercel
+# ## Cloud Deployments (Vercel)
 .vercel
 
-# TypeScript
+# ## TypeScript Compiler Info
 *.tsbuildinfo
 next-env.d.ts
 
-# Editor directories and files
+# ## Editors and OS-Specific Files
 .vscode/*
 !.vscode/extensions.json
 .idea
@@ -46,3 +48,15 @@ next-env.d.ts
 *.njsproj
 *.sln
 *.sw?
+
+# ## Databases (Local Development)
+*.db
+*.sqlite
+*.sqlite3
+local.db
+
+# ## Generated Files & Code Generators
+# User defined value:
+/generated/prisma
+# Resolved path for src directory:
+src/generated/prisma/

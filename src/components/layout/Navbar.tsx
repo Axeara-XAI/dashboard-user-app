@@ -227,7 +227,7 @@ export default function Navbar() {
           {/* Desktop nav links */}
           <nav className={styles.navGroup}>
             <Button appearance="subtle" icon={<Bot24Regular />}>Ai Asisten</Button>
-            <Button appearance="subtle" icon={<Settings24Regular />}>Settings</Button>
+            <Button appearance="subtle" icon={<Settings24Regular />}>Pengaturan</Button>
           </nav>
         </div>
 
