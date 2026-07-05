@@ -26,7 +26,7 @@ jobs:
 
       - name: Install dependencies and Build
         env:
-          DATABASE_URL: "libsql://dummy-url-for-build-only.turso.io" 
+          TURSO_DATABASE_URL: "libsql://dummy-url-for-build-only.turso.io" 
           TURSO_AUTH_TOKEN: "dummy-token"
         run: |
           npm ci
