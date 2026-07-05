@@ -3,6 +3,9 @@ import { db } from '../../../../db';
 import { patients, assessments } from '../../../../db/schema';
 import { eq } from 'drizzle-orm';
 
+// KUNCI PERBAIKAN: Paksa Next.js untuk berjalan secara dinamis saat runtime di Azure
+export const dynamic = 'force-dynamic';
+
 export async function DELETE(request: Request, props: { params: Promise<{ id: string }> }) {
   try {
     const params = await props.params;

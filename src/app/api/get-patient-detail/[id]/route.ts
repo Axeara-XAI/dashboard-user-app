@@ -3,6 +3,9 @@ import { db } from '../../../../db';
 import { patients, assessments } from '../../../../db/schema';
 import { eq, desc } from 'drizzle-orm';
 
+// KUNCI PERBAIKAN: Memastikan Azure tidak menggunakan cache untuk halaman detail pasien
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
   try {
     const params = await props.params;

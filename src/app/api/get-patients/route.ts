@@ -3,6 +3,9 @@ import { db } from '../../../db';
 import { patients } from '../../../db/schema';
 import { desc } from 'drizzle-orm';
 
+// KUNCI PERBAIKAN: Wajib ditambahkan agar daftar pasien tidak di-cache kosong!
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/get-patients
  * Mengambil semua data pasien dari database, diurutkan dari yang terbaru.

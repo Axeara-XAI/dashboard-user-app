@@ -3,6 +3,9 @@ import { db } from '../../../../db';
 import { assessments, assessmentResults } from '../../../../db/schema';
 import { eq, desc } from 'drizzle-orm';
 
+// KUNCI PERBAIKAN: Paksa Next.js untuk tidak melakukan cache pada rute ini
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/get-assessments/[patientId]
  * Mengambil semua asesmen beserta hasil AI untuk satu pasien tertentu.
