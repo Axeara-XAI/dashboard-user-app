@@ -55,14 +55,7 @@ export default function DirectoryFooter({ totalPatients }: DirectoryFooterProps)
       </Text>
 
       <div className={styles.footerRightGroup}>
-        <div className={styles.quickActionsFooter}>
-          <Button appearance="transparent" size="small" icon={<BookQuestionMarkRegular />}>
-            Panduan Manajemen
-          </Button>
-          <Button appearance="transparent" size="small" icon={<HeartPulseRegular />}>
-            Diagnosis Performa Sistem
-          </Button>
-        </div>
+
 
         {totalPatients > 20 && <div className={styles.divider} />}
 

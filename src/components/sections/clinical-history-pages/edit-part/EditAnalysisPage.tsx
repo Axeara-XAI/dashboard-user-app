@@ -1,10 +1,9 @@
 'use client';
 
-import React, { Suspense, useState, useEffect } from 'react';
-import { makeStyles, tokens, Spinner } from '@fluentui/react-components';
+import React, { useState, useEffect } from 'react';
+import { makeStyles, tokens } from '@fluentui/react-components';
 import AnalysisHeader from './AnalysisHeader';
 import AnalysisBody from './AnalysisBody';
-import { useSearchParams } from 'next/navigation';
 
 // ============================================================================
 // STYLES DEFINITION
@@ -30,14 +29,12 @@ const useStyles = makeStyles({
   },
 });
 
-// ============================================================================
-// INNER COMPONENT (uses useSearchParams — must be inside Suspense)
-// ============================================================================
-function AnalysisPageInner() {
+interface EditAnalysisPageProps {
+  id: string;
+}
+
+export default function EditAnalysisPage({ id }: EditAnalysisPageProps) {
   const styles = useStyles();
-  const searchParams = useSearchParams();
-  const editId = searchParams.get('editId');
-  const patientId = searchParams.get('patientId');
 
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [isFormDirty, setIsFormDirty] = useState<boolean>(true);
@@ -53,24 +50,8 @@ function AnalysisPageInner() {
     <div className={styles.pageWrapper}>
       <div className={styles.pageContainer}>
         <AnalysisHeader isFormDirty={isFormDirty} />
-        <AnalysisBody 
-          currentStep={currentStep} 
-          setCurrentStep={setCurrentStep} 
-          editId={editId} 
-          patientId={patientId} 
-        />
+        <AnalysisBody currentStep={currentStep} setCurrentStep={setCurrentStep} editId={id} />
       </div>
     </div>
-  );
-}
-
-// ============================================================================
-// MAIN PAGE COMPONENT — wraps inner component in Suspense
-// ============================================================================
-export default function AnalysisMain() {
-  return (
-    <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', padding: '48px' }}><Spinner size="large" label="Memuat halaman analisis..." /></div>}>
-      <AnalysisPageInner />
-    </Suspense>
   );
 }

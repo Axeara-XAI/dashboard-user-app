@@ -7,6 +7,7 @@ import {
 } from '@fluentui/react-components';
 import { AddRegular, DocumentRegular } from '@fluentui/react-icons';
 import { AssessmentRecord } from '../clinical-history-pages';
+import { useRouter } from 'next/navigation';
 
 const useStyles = makeStyles({
   wrapperSolid: { display: 'flex', flexDirection: 'column', gap: '16px', width: '100%', marginTop: '8px' },
@@ -27,6 +28,7 @@ interface AssessmentTableProps {
 
 export default function AssessmentTable({ assessments, isLoading, error, onNewAnalysis }: AssessmentTableProps) {
   const styles = useStyles();
+  const router = useRouter();
 
   return (
     <div className={styles.wrapperSolid}>
@@ -85,7 +87,13 @@ export default function AssessmentTable({ assessments, isLoading, error, onNewAn
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <Button appearance="subtle" icon={<DocumentRegular />}>Lihat Laporan</Button>
+                  <Button 
+                    appearance="subtle" 
+                    icon={<DocumentRegular />}
+                    onClick={() => router.push(`/dashboard/clinical-history/report/${assessment.id}`)}
+                  >
+                    Lihat Laporan
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}

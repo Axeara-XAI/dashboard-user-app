@@ -1,6 +1,7 @@
 export interface AnalysisFormData {
   // Langkah 1: Identitas Orang Tua
   nama_ibu: string;
+  m_dob: string;
   mage: string;
   meduc_raw: number; 
   meduc_cat: string;  
@@ -8,6 +9,7 @@ export interface AnalysisFormData {
   hispmom: string;
   marital: string;
   nama_ayah: string;
+  f_dob: string;
   fage: string;
   feduc_raw: number;
   feduc_cat: string;

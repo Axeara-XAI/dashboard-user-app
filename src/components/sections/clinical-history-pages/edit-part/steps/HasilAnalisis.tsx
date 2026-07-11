@@ -18,7 +18,7 @@ import {
   DataTrendingRegular,
   LightbulbRegular,
 } from '@fluentui/react-icons';
-import { AnalysisFormData } from '../../../../type/analysis';
+import { AnalysisFormData } from '../../../../../type/analysis';
 
 // ============================================================================
 // STYLES DEFINITION

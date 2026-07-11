@@ -1,12 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { makeStyles, tokens, Card, Title3, Text, Input, Textarea, Button, Spinner } from '@fluentui/react-components';
+import { makeStyles, tokens, Title3, Text, Input, Textarea, Button, Spinner } from '@fluentui/react-components';
 import { Send24Regular } from '@fluentui/react-icons';
 
 const useStyles = makeStyles({
-  formCard: {
-    padding: '24px',
+  formContainer: {
     display: 'flex',
     flexDirection: 'column',
     gap: '16px'
@@ -37,7 +36,7 @@ export default function TicketForm({ onSubmit, isSubmitting }: TicketFormProps) 
   };
 
   return (
-    <Card className={styles.formCard}>
+    <div className={styles.formContainer}>
       <Title3>Kirim Tiket Baru</Title3>
       <Text size={300} style={{ color: tokens.colorNeutralForeground2 }}>
         Jika Anda menemukan kendala teknis atau memiliki pertanyaan terkait aplikasi, kirimkan pesan ke admin.
@@ -69,10 +68,10 @@ export default function TicketForm({ onSubmit, isSubmitting }: TicketFormProps) 
         icon={isSubmitting ? <Spinner size="tiny" /> : <Send24Regular />} 
         onClick={handleSubmit}
         disabled={isSubmitting}
-        style={{ marginTop: '8px' }}
+        style={{ marginTop: '8px', width: 'fit-content' }}
       >
         Kirim Tiket
       </Button>
-    </Card>
+    </div>
   );
 }

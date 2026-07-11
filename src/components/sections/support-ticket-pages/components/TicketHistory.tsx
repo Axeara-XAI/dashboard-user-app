@@ -1,16 +1,14 @@
 'use client';
 
 import React from 'react';
-import { makeStyles, tokens, Card, Title3, Text, Spinner, Badge } from '@fluentui/react-components';
+import { makeStyles, tokens, Title3, Text, Spinner, Badge } from '@fluentui/react-components';
 import { Receipt24Regular } from '@fluentui/react-icons';
 
 const useStyles = makeStyles({
-  ticketListCard: {
-    padding: '24px',
+  ticketListContainer: {
     display: 'flex',
     flexDirection: 'column',
     gap: '16px',
-    backgroundColor: tokens.colorNeutralBackground2
   },
   ticketItem: {
     padding: '16px',
@@ -47,7 +45,7 @@ export default function TicketHistory({ tickets, isLoading }: TicketHistoryProps
   const styles = useStyles();
 
   return (
-    <Card className={styles.ticketListCard}>
+    <div className={styles.ticketListContainer}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <Receipt24Regular style={{ color: tokens.colorBrandForeground1 }} />
         <Title3>Riwayat Tiket Saya</Title3>
@@ -96,6 +94,6 @@ export default function TicketHistory({ tickets, isLoading }: TicketHistoryProps
           ))}
         </div>
       )}
-    </Card>
+    </div>
   );
 }

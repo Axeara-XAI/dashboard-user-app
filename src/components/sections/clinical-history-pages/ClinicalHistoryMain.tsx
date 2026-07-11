@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { makeStyles, tokens, Button, Spinner, Text } from '@fluentui/react-components';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   AssessmentList,
   PatientDirectory,
@@ -117,6 +117,9 @@ export default function ClinicalHistoryMain() {
     fetchPatients();
   }, [fetchPatients]);
 
+  const searchParams = useSearchParams();
+  const patientIdFromQuery = searchParams.get('patientId');
+
   const handleSelectPatient = useCallback(async (patient: PatientContainer) => {
     setSelectedPatient(patient);
     setAssessments([]);
@@ -134,6 +137,17 @@ export default function ClinicalHistoryMain() {
       setIsAssessmentsLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    if (patientIdFromQuery && patients.length > 0 && !selectedPatient) {
+      const patient = patients.find(p => p.id === patientIdFromQuery);
+      if (patient) {
+        handleSelectPatient(patient);
+      }
+    }
+  }, [patientIdFromQuery, patients, selectedPatient, handleSelectPatient]);
+
+
 
   return (
     <div className={styles.pageContainer}>
@@ -168,8 +182,13 @@ export default function ClinicalHistoryMain() {
       {selectedPatient && (
         <AssessmentList 
           patient={selectedPatient}
-          onBack={() => setSelectedPatient(null)}
-          onNewAnalysis={() => router.push('/dashboard/analysis')}
+          onBack={() => {
+            setSelectedPatient(null);
+            if (patientIdFromQuery) {
+              router.replace('/dashboard/clinical-history');
+            }
+          }}
+          onNewAnalysis={() => router.push(`/dashboard/analysis?patientId=${selectedPatient.id}`)}
           assessments={assessments}
           isLoading={isAssessmentsLoading}
           error={assessmentsError}

@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../generated/prisma"
 }
 
@@ -96,6 +96,7 @@ model patients {
   id                    Int           @id @default(autoincrement())
   user_id               Int
   patient_name          String
+  father_name           String?       @db.VarChar(255)
   date_of_birth         DateTime      @db.Date
   medical_record_number String        @unique
   created_at            DateTime      @default(now())

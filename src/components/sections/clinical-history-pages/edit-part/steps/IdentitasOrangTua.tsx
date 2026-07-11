@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { makeStyles, tokens, Combobox, Option, Label, Input } from '@fluentui/react-components';
-import { AnalysisFormData } from '../../../../type/analysis'; 
+import { AnalysisFormData } from '../../../../../type/analysis'; 
 
 const useStyles = makeStyles({
   formSection: { display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '700px' },
@@ -156,27 +156,6 @@ export default function IdentitasOrangTua({ data, updateFields }: StepProps) {
             />
           </div>
         </div>
-
-        <div className={styles.formRow}>
-          <div className={styles.labelWrapper}><Label required>Tanggal Lahir Ibu</Label></div>
-          <div className={styles.inputWrapper}>
-            <Input 
-              type="date"
-              value={data.m_dob || ''}
-              onChange={(e) => {
-                const dob = e.target.value;
-                if (dob) {
-                  const diff = new Date().getTime() - new Date(dob).getTime();
-                  const age = Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25)).toString();
-                  updateFields({ m_dob: dob, mage: age });
-                } else {
-                  updateFields({ m_dob: dob });
-                }
-              }}
-              className={styles.inputField} 
-            />
-          </div>
-        </div>
         
         <div className={styles.formRow}>
           <div className={styles.labelWrapper}><Label required>Usia Ibu (MAGE)</Label></div>
@@ -281,27 +260,6 @@ export default function IdentitasOrangTua({ data, updateFields }: StepProps) {
               value={data.nama_ayah}
               onChange={(e) => updateFields({ nama_ayah: e.target.value })}
               placeholder="Masukkan nama ayah" 
-              className={styles.inputField} 
-            />
-          </div>
-        </div>
-
-        <div className={styles.formRow}>
-          <div className={styles.labelWrapper}><Label required>Tanggal Lahir Ayah</Label></div>
-          <div className={styles.inputWrapper}>
-            <Input 
-              type="date"
-              value={data.f_dob || ''}
-              onChange={(e) => {
-                const dob = e.target.value;
-                if (dob) {
-                  const diff = new Date().getTime() - new Date(dob).getTime();
-                  const age = Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25)).toString();
-                  updateFields({ f_dob: dob, fage: age });
-                } else {
-                  updateFields({ f_dob: dob });
-                }
-              }}
               className={styles.inputField} 
             />
           </div>

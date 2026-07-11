@@ -1,16 +1,16 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   makeStyles, tokens, Table, TableHeader, TableRow, 
   TableHeaderCell, TableBody, TableCell, Avatar, Text, Button 
 } from '@fluentui/react-components';
 import { PersonRegular, ArrowRightRegular, EditRegular, DeleteRegular } from '@fluentui/react-icons';
 import { useRouter } from 'next/navigation';
+import AlertModal from '../../../ui/AlertModal';
 
 const useStyles = makeStyles({
   tableContainer: {
-    overflowX: 'auto',
     marginTop: '4px',
   },
   patientNameCell: {
@@ -44,9 +44,28 @@ export default function DirectoryTable({ patients, onSelectPatient, onRefresh }:
   const styles = useStyles();
   const router = useRouter();
 
+  const [patientToDelete, setPatientToDelete] = useState<PatientContainer | null>(null);
+
+  const handleConfirmDelete = async () => {
+    if (!patientToDelete) return;
+    try {
+      const res = await fetch(`/api/delete-patient/${patientToDelete.id}`, { method: 'DELETE' });
+      const json = await res.json();
+      if (json.success) {
+        if (onRefresh) onRefresh();
+      } else {
+        alert('Gagal menghapus: ' + json.message);
+      }
+    } catch (err) {
+      alert('Terjadi kesalahan saat menghapus data.');
+    } finally {
+      setPatientToDelete(null);
+    }
+  };
+
   return (
     <div className={styles.tableContainer}>
-      <Table aria-label="Daftar Pasien" style={{ minWidth: '700px' }}>
+      <Table aria-label="Daftar Pasien" style={{ width: '100%' }}>
         <TableHeader>
           <TableRow>
             <TableHeaderCell>Nama Pasien</TableHeaderCell>
@@ -78,7 +97,7 @@ export default function DirectoryTable({ patients, onSelectPatient, onRefresh }:
                     icon={<EditRegular />} 
                     onClick={(e) => {
                       e.stopPropagation();
-                      router.push(`/dashboard/analysis?editId=${patient.id}`);
+                      router.push(`/dashboard/clinical-history/edit/${patient.id}`);
                     }}
                   >
                     Edit
@@ -87,21 +106,9 @@ export default function DirectoryTable({ patients, onSelectPatient, onRefresh }:
                     appearance="subtle" 
                     style={{ color: tokens.colorPaletteRedForeground1 }}
                     icon={<DeleteRegular />} 
-                    onClick={async (e) => {
+                    onClick={(e) => {
                       e.stopPropagation();
-                      if (confirm(`Apakah Anda yakin ingin menghapus data pasien ${patient.name}?`)) {
-                        try {
-                          const res = await fetch(`/api/delete-patient/${patient.id}`, { method: 'DELETE' });
-                          const json = await res.json();
-                          if (json.success) {
-                            if (onRefresh) onRefresh();
-                          } else {
-                            alert('Gagal menghapus: ' + json.message);
-                          }
-                        } catch (err) {
-                          alert('Terjadi kesalahan saat menghapus data.');
-                        }
-                      }
+                      setPatientToDelete(patient);
                     }}
                   >
                     Hapus
@@ -129,6 +136,17 @@ export default function DirectoryTable({ patients, onSelectPatient, onRefresh }:
           )}
         </TableBody>
       </Table>
+
+      <AlertModal
+        isOpen={!!patientToDelete}
+        title="Konfirmasi Hapus Data"
+        content={`Apakah Anda yakin ingin menghapus data pasien ${patientToDelete?.name}? Tindakan ini bersifat permanen dan tidak dapat dibatalkan.`}
+        confirmText="Ya, Hapus"
+        cancelText="Batal"
+        isDanger={true}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setPatientToDelete(null)}
+      />
     </div>
   );
 }

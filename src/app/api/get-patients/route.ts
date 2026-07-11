@@ -1,29 +1,32 @@
 import { NextResponse } from 'next/server';
 import { db } from '../../../db';
-import { patients } from '../../../db/schema';
-import { desc } from 'drizzle-orm';
 
-// KUNCI PERBAIKAN: Wajib ditambahkan agar daftar pasien tidak di-cache kosong!
 export const dynamic = 'force-dynamic';
 
-/**
- * GET /api/get-patients
- * Mengambil semua data pasien dari database, diurutkan dari yang terbaru.
- */
 export async function GET() {
   try {
-    const allPatients = await db
-      .select({
-        id: patients.id,
-        patientName: patients.patientName,
-        dateOfBirth: patients.dateOfBirth,
-        medicalRecordNumber: patients.medicalRecordNumber,
-        createdAt: patients.createdAt,
-      })
-      .from(patients)
-      .orderBy(desc(patients.id));
+    const allPatients = await db.patients.findMany({
+      select: {
+        id: true,
+        patient_name: true,
+        date_of_birth: true,
+        medical_record_number: true,
+        created_at: true,
+      },
+      orderBy: {
+        id: 'desc',
+      },
+    });
 
-    return NextResponse.json({ success: true, data: allPatients });
+    const formattedPatients = allPatients.map((p) => ({
+      id: p.id,
+      patientName: p.patient_name,
+      dateOfBirth: p.date_of_birth,
+      medicalRecordNumber: p.medical_record_number,
+      createdAt: p.created_at,
+    }));
+
+    return NextResponse.json({ success: true, data: formattedPatients });
   } catch (error: any) {
     console.error('Error fetching patients:', error);
     return NextResponse.json(

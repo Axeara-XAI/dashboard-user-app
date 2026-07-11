@@ -49,3 +49,88 @@ a {
 ::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
+
+.print-only, .print-only-flex {
+  display: none !important;
+}
+
+/* ==========================================
+   PRINT STYLES
+   ========================================== */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 15mm;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+  .print-only-flex {
+    display: flex !important;
+  }
+  .print-block {
+    display: block !important;
+    height: auto !important;
+    flex: none !important;
+  }
+
+  /* Sembunyikan tombol kembali saat dicetak */
+  .print-hidden {
+    display: none !important;
+  }
+
+  /* Berikan padding kompensasi untuk halaman isi agar teks tidak terlalu menempel ke tepi kertas */
+  div[class*="contentInner"] {
+    padding: 48px !important;
+  }
+
+  /* Sembunyikan elemen navigasi dan sidebar */
+  nav, aside, header, .print-hidden {
+    display: none !important;
+  }
+  
+  /* Reset container agar menggunakan seluruh kertas */
+  body, html, main, #root, #__next {
+    width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background-color: white !important;
+    overflow: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Secara paksa hapus batasan scroll pada kontainer saat dicetak */
+  body *, html * {
+    overflow: visible !important;
+  }
+  
+  /* Hilangkan padding luar agar elemen cover bisa edge-to-edge */
+  div[class*="contentScrollable"], div[class*="pageContainer"] {
+    padding: 0 !important;
+  }
+
+  /* Hilangkan height 100% atau 100vh yang bisa memotong halaman */
+  div {
+    max-height: none !important;
+  }
+
+  /* Cegah card terpotong di antara dua halaman */
+  .print-avoid-break {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Hilangkan bayangan untuk cetak */
+  * {
+    box-shadow: none !important;
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+@page {
+  margin: 0;
+}

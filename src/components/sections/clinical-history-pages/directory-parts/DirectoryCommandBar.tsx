@@ -47,9 +47,7 @@ export default function DirectoryCommandBar({ onNew, onRefresh, onExportCSV }: D
       <Button appearance="transparent" icon={<ArrowClockwiseRegular className={styles.blueIcon} />} onClick={onRefresh}>
         Refresh
       </Button>
-      <Button appearance="transparent" icon={<DocumentArrowDownRegular className={styles.blueIcon} />} onClick={onExportCSV}>
-        Ekspor ke CSV
-      </Button>
+
     </div>
   );
 }

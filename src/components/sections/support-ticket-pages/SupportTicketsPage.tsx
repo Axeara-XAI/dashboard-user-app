@@ -23,14 +23,10 @@ const useStyles = makeStyles({
     display: 'flex',
     flexDirection: 'column',
     flexGrow: 1,
-    backgroundColor: tokens.colorNeutralBackground1,
-    border: `1px solid ${tokens.colorNeutralStroke1}`,
-    borderRadius: tokens.borderRadiusMedium,
-    overflow: 'hidden',
-    boxShadow: tokens.shadow4,
+    // KUNCI PERBAIKAN: border, borderRadius, backgroundColor, dan boxShadow dihapus agar tidak berbentuk kotak
   },
   innerContent: {
-    padding: '24px',
+    paddingTop: '24px', // Padding kiri-kanan dihapus agar rata dengan pinggir layar
     display: 'flex',
     flexDirection: 'column',
     gap: '24px',
@@ -41,7 +37,7 @@ const useStyles = makeStyles({
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-    padding: '24px 24px 0 24px',
+    paddingBottom: '16px', // Disesuaikan agar lebih rapi tanpa padding kotak
   },
   breadcrumbLink: {
     color: tokens.colorNeutralForeground2,
@@ -56,8 +52,8 @@ const useStyles = makeStyles({
     display: 'flex',
     alignItems: 'center',
     gap: '16px',
-    padding: '0 24px 16px 24px',
-    borderBottom: `1px solid ${tokens.colorNeutralStroke1}`
+    paddingBottom: '16px', // Padding kiri-kanan dihapus
+    borderBottom: `1px solid ${tokens.colorNeutralStroke1}` // Tetap disisakan sebagai garis pemisah judul
   },
   layout: {
     display: 'grid',
@@ -138,7 +134,7 @@ export default function SupportTicketsPage() {
           <span>Tiket Bantuan</span>
         </div>
 
-        <div className={styles.header} style={{ marginTop: '16px' }}>
+        <div className={styles.header}>
           <Button appearance="subtle" icon={<ArrowLeft24Regular />} onClick={() => router.back()} />
           <div>
             <Title3>Tiket Bantuan</Title3>
@@ -155,7 +151,6 @@ export default function SupportTicketsPage() {
         
       </div>
 
-      {/* Alert Modal untuk Form[cite: 9] */}
       <AlertModal 
         isOpen={alert.isOpen}
         title={alert.title}

@@ -37,7 +37,6 @@ function AnalysisPageInner() {
   const styles = useStyles();
   const searchParams = useSearchParams();
   const editId = searchParams.get('editId');
-  const patientId = searchParams.get('patientId');
 
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [isFormDirty, setIsFormDirty] = useState<boolean>(true);
@@ -53,12 +52,7 @@ function AnalysisPageInner() {
     <div className={styles.pageWrapper}>
       <div className={styles.pageContainer}>
         <AnalysisHeader isFormDirty={isFormDirty} />
-        <AnalysisBody 
-          currentStep={currentStep} 
-          setCurrentStep={setCurrentStep} 
-          editId={editId} 
-          patientId={patientId} 
-        />
+        <AnalysisBody currentStep={currentStep} setCurrentStep={setCurrentStep} editId={editId} />
       </div>
     </div>
   );

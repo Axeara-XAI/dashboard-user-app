@@ -1,25 +1,29 @@
 import { NextResponse } from 'next/server';
 import { db } from '../../../db';
-import { patients, assessments, assessmentResults } from '../../../db/schema';
-import { sql, desc } from 'drizzle-orm';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const allAssessments = await db.select({
-      id: assessments.id,
-      patientId: patients.id,
-      patientName: patients.patientName,
-      medicalRecordNumber: patients.medicalRecordNumber,
-      date: assessments.createdAt,
-      riskLabel: assessmentResults.riskLabel,
-      probability: assessmentResults.probability,
-    })
-    .from(assessments)
-    .innerJoin(patients, sql`${assessments.patientId} = ${patients.id}`)
-    .innerJoin(assessmentResults, sql`${assessments.id} = ${assessmentResults.assessmentId}`)
-    .orderBy(desc(assessments.createdAt));
+    const rawAssessments = await db.assessments.findMany({
+      orderBy: {
+        created_at: 'desc',
+      },
+      include: {
+        patients: true,
+        assessment_results: true,
+      },
+    });
+
+    const allAssessments = rawAssessments.map((a) => ({
+      id: a.id,
+      patientId: a.patients?.id,
+      patientName: a.patients?.patient_name || 'Anonim',
+      medicalRecordNumber: a.patients?.medical_record_number || '',
+      date: a.created_at,
+      riskLabel: a.assessment_results?.risk_label || 'N/A',
+      probability: a.assessment_results?.probability || 0,
+    }));
 
     return NextResponse.json({
       success: true,

@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
-import { makeStyles, tokens, Card, Avatar, Text, Button, Divider } from '@fluentui/react-components';
+import React, { useState } from 'react';
+import { makeStyles, tokens, Card, Avatar, Text, Button, Divider, Spinner } from '@fluentui/react-components';
 import { PersonRegular, DocumentArrowDownRegular } from '@fluentui/react-icons';
 import { PatientContainer } from '../directory-parts/DirectoryTable';
 
@@ -108,6 +108,7 @@ interface PatientProfileCardProps {
 
 export default function PatientProfileCard({ patient }: PatientProfileCardProps) {
   const styles = useStyles();
+  const [isPrinting, setIsPrinting] = useState(false);
 
   if (!patient) return null;
 
@@ -126,10 +127,33 @@ export default function PatientProfileCard({ patient }: PatientProfileCardProps)
         </div>
         <Button 
           appearance="primary" 
-          icon={<DocumentArrowDownRegular />}
+          icon={isPrinting ? <Spinner size="tiny" /> : <DocumentArrowDownRegular />}
           className={styles.actionButton}
+          disabled={isPrinting}
+          onClick={() => {
+            if (isPrinting) return;
+            setIsPrinting(true);
+            
+            // Membuat iframe tersembunyi untuk memuat halaman cetak tanpa berpindah tab
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = `/dashboard/patient-summary/${patient.id}`;
+            document.body.appendChild(iframe);
+            
+            // iframe akan otomatis mengeksekusi window.print() dari dalam halamannya sendiri
+            // Setelah dialog print terbuka (atau batal), kembalikan tombol ke keadaan semula
+            setTimeout(() => {
+              setIsPrinting(false);
+            }, 2000); // 2 detik sudah sangat cukup untuk browser memicu dialog print
+
+            setTimeout(() => {
+              if (document.body.contains(iframe)) {
+                document.body.removeChild(iframe);
+              }
+            }, 60000); // Hapus setelah 60 detik
+          }}
         >
-          Unduh Ringkasan Medis
+          {isPrinting ? 'Menyiapkan...' : 'Unduh Ringkasan Medis'}
         </Button>
       </div>
 

@@ -92,7 +92,7 @@ export default function AnalysisFooter({
             onClick={handleSubmit}
             disabled={isSaving} 
           >
-            {isSaving ? 'Menyimpan...' : 'Simpan Data'}
+            {isSaving ? 'Memperbarui...' : 'Perbarui Data'}
           </Button>
         ) : (
           <Button 

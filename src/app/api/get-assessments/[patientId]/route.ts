@@ -1,15 +1,8 @@
 import { NextResponse } from 'next/server';
 import { db } from '../../../../db';
-import { assessments, assessmentResults } from '../../../../db/schema';
-import { eq, desc } from 'drizzle-orm';
 
-// KUNCI PERBAIKAN: Paksa Next.js untuk tidak melakukan cache pada rute ini
 export const dynamic = 'force-dynamic';
 
-/**
- * GET /api/get-assessments/[patientId]
- * Mengambil semua asesmen beserta hasil AI untuk satu pasien tertentu.
- */
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ patientId: string }> }
@@ -25,22 +18,24 @@ export async function GET(
       );
     }
 
-    // JOIN assessments + assessment_results
-    const records = await db
-      .select({
-        assessmentId: assessments.id,
-        createdAt: assessments.createdAt,
-        riskLabel: assessmentResults.riskLabel,
-        probability: assessmentResults.probability,
-        narrativeExplanation: assessmentResults.narrativeExplanation,
-        narrativeRecommendation: assessmentResults.narrativeRecommendation,
-      })
-      .from(assessments)
-      .leftJoin(assessmentResults, eq(assessmentResults.assessmentId, assessments.id))
-      .where(eq(assessments.patientId, patientId))
-      .orderBy(desc(assessments.id));
+    const records = await db.assessments.findMany({
+      where: { patient_id: patientId },
+      orderBy: { id: 'desc' },
+      include: {
+        assessment_results: true,
+      },
+    });
 
-    return NextResponse.json({ success: true, data: records });
+    const formattedRecords = records.map((a) => ({
+      assessmentId: a.id,
+      createdAt: a.created_at,
+      riskLabel: a.assessment_results?.risk_label || 'N/A',
+      probability: a.assessment_results?.probability || 0,
+      narrativeExplanation: a.assessment_results?.narrative_explanation || null,
+      narrativeRecommendation: a.assessment_results?.narrative_recommendation || null,
+    }));
+
+    return NextResponse.json({ success: true, data: formattedRecords });
   } catch (error: any) {
     console.error('Error fetching assessments:', error);
     return NextResponse.json(

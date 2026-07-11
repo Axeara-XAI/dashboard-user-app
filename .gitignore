@@ -60,3 +60,5 @@ local.db
 /generated/prisma
 # Resolved path for src directory:
 src/generated/prisma/
+
+AGENTS.md

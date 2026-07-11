@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { makeStyles, tokens, Dropdown, Option, Label, Input } from '@fluentui/react-components';
-import { AnalysisFormData } from '../../../../type/analysis';
+import { AnalysisFormData } from '../../../../../type/analysis';
 
 const useStyles = makeStyles({
   formSection: { display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '700px' },

@@ -18,10 +18,10 @@ import HasilAnalisis from './steps/HasilAnalisis';
 
 // Impor Footer dan AlertModal 
 import AnalysisFooter from './AnalysisFooter'; 
-import AlertModal from '../../ui/AlertModal';
+import AlertModal from '../../../ui/AlertModal';
 
 // Impor Interface Data
-import { AnalysisFormData } from '../../../type/analysis';
+import { AnalysisFormData } from '../../../../type/analysis';
 
 // ============================================================================
 // INTERFACE PROPS
@@ -30,7 +30,6 @@ interface AnalysisBodyProps {
   currentStep: number;
   setCurrentStep: (step: number) => void;
   editId?: string | null;
-  patientId?: string | null;
 }
 
 // ============================================================================
@@ -119,7 +118,7 @@ const getEducationCat = (raw: number) => {
 // ============================================================================
 // MAIN COMPONENT
 // ============================================================================
-export default function AnalysisBody({ currentStep, setCurrentStep, editId, patientId }: AnalysisBodyProps) {
+export default function AnalysisBody({ currentStep, setCurrentStep, editId }: AnalysisBodyProps) {
   const styles = useStyles();
   const router = useRouter();
 
@@ -133,10 +132,9 @@ export default function AnalysisBody({ currentStep, setCurrentStep, editId, pati
           if (json.success && json.data.patient && json.data.assessment) {
             const p = json.data.patient;
             const a = json.data.assessment;
-            
-            // Hitung umur dari DOB jika tidak ada mage di assessment
+
             const m_dob = p.date_of_birth ? new Date(p.date_of_birth).toISOString().split('T')[0] : '';
-            let mage = a.mage ? String(a.mage) : '';
+            let mage = String(a.mage || '');
             if (!mage && m_dob) {
                const diff = new Date().getTime() - new Date(m_dob).getTime();
                mage = Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25)).toString();
@@ -185,71 +183,30 @@ export default function AnalysisBody({ currentStep, setCurrentStep, editId, pati
               loutcome: String(a.loutcome),
             }));
           }
-        } catch (error) {
-          console.error("Gagal memuat detail pasien:", error);
+        } catch (err) {
+          console.error("Gagal memuat data pasien untuk diedit:", err);
         }
       };
       fetchPatientDetail();
-    } else if (patientId && !editId) {
-      // PREFILL UNTUK ANALISIS BARU (Hanya demografi dan nama)
-      const fetchNewAnalysisPrefill = async () => {
-        try {
-          const res = await fetch(`/api/get-patient-detail/${patientId}`);
-          const json = await res.json();
-          if (json.success && json.data.patient) {
-            const p = json.data.patient;
-            const a = json.data.assessment; // Assessment terakhir jika ada
-            
-            const m_dob = p.date_of_birth ? new Date(p.date_of_birth).toISOString().split('T')[0] : '';
-            let mage = '';
-            if (m_dob) {
-               const diff = new Date().getTime() - new Date(m_dob).getTime();
-               mage = Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25)).toString();
-            }
-
-            setFormData(prev => ({
-              ...prev,
-              nama_ibu: p.patient_name || '',
-              nama_ayah: p.father_name || '',
-              m_dob: m_dob,
-              mage: mage,
-              // Jika ada assessment sebelumnya, prefill demografi lainnya
-              meduc_raw: a ? a.meduc : 1,
-              meduc_cat: a ? getEducationCat(a.meduc) : '',
-              racemom: a ? String(a.racemom) : '',
-              hispmom: a ? (a.hispmom === 1 ? 'Y' : 'N') : '',
-              marital: a ? String(a.marital) : '',
-              fage: a ? String(a.fage) : '',
-              feduc_raw: a ? a.feduc : 1,
-              feduc_cat: a ? getEducationCat(a.feduc) : '',
-              racedad: a ? String(a.racedad) : '',
-              hispdad: a ? (a.hispdad === 1 ? 'Y' : 'N') : '',
-            }));
-          }
-        } catch (error) {
-          console.error("Gagal memuat auto-fill pasien:", error);
-        }
-      };
-      fetchNewAnalysisPrefill();
     }
-  }, [editId, patientId]);
+  }, [editId]);
 
   const [formData, setFormData] = useState<AnalysisFormData>({
-    // Langkah 1: Identitas
-    nama_ibu: '',
+    // Langkah 1: Identitas Orang Tua
+    nama_ibu: '', 
     m_dob: '',
-    mage: '',
+    mage: '', 
+    meduc_cat: '',
     meduc_raw: 1, 
-    meduc_cat: '',  
-    racemom: '',
-    hispmom: '',
-    marital: '',
-    nama_ayah: '',
+    racemom: '', 
+    hispmom: '', 
+    marital: '', 
+    nama_ayah: '', 
     f_dob: '',
-    fage: '',
-    feduc_raw: 1,
+    fage: '', 
     feduc_cat: '',
-    racedad: '',
+    feduc_raw: 1, 
+    racedad: '', 
     hispdad: '',
     
     // Langkah 2: Riwayat Kesehatan Ibu
