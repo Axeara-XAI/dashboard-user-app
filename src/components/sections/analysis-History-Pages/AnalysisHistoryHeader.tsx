@@ -59,7 +59,7 @@ export default function AnalysisHistoryHeader() {
         <Button
           appearance="subtle"
           icon={<ArrowLeft24Regular />}
-          onClick={() => router.back()}
+          onClick={() => router.push('/dashboard')}
           aria-label="Kembali"
         >
           Kembali ke halaman utama

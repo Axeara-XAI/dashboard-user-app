@@ -8,6 +8,7 @@ import {
   FluentProvider,
   renderToStyleElements 
 } from '@fluentui/react-components';
+import { SessionProvider } from 'next-auth/react';
 
 // 1. Perbaikan Path & Import: 
 // Menggunakan relative path '../' dan mengimpor 'axaraLightTheme'
@@ -26,7 +27,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <RendererProvider renderer={renderer}>
       {/* 2. Perbaikan Tema: Menggunakan axaraLightTheme */}
       <FluentProvider theme={axaraLightTheme}> 
-        {children}
+        <SessionProvider>
+          {children}
+        </SessionProvider>
       </FluentProvider>
     </RendererProvider>
   );

@@ -11,6 +11,7 @@ import {
   Navigation24Regular,
   Dismiss24Regular,
 } from '@fluentui/react-icons';
+import { useSession, signOut } from 'next-auth/react';
 
 import AlertModal from '../ui/AlertModal';
 
@@ -90,6 +91,14 @@ const useStyles = makeStyles({
 
   /* Profile label hidden on mobile */
   profileLabel: {
+    '@media (max-width: 768px)': {
+      display: 'none',
+    },
+  },
+
+  /* Logout button specifics */
+  logoutBtn: {},
+  logoutLabel: {
     '@media (max-width: 768px)': {
       display: 'none',
     },
@@ -189,12 +198,13 @@ export default function Navbar() {
   const styles = useStyles();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { data: session } = useSession();
 
   const openMenu  = () => setIsMobileMenuOpen(true);
   const closeMenu = () => setIsMobileMenuOpen(false);
 
   const handleConfirmLogout = () => {
-    console.log('Proses logout berjalan...');
+    signOut({ callbackUrl: 'https://auth.axara-xai.com/login' });
     setIsLogoutModalOpen(false);
   };
 
@@ -244,16 +254,19 @@ export default function Navbar() {
         {/* RIGHT: Profile + Logout */}
         <div className={styles.headerRight}>
           <Button appearance="subtle" icon={<Person24Regular />} title="Profile">
-            <span className={styles.profileLabel}>Guest</span>
+            <span className={styles.profileLabel}>{session?.user?.name || 'Guest'}</span>
           </Button>
           <Button
             id="logout-btn"
+            className={styles.logoutBtn}
             appearance="subtle"
             icon={<SignOut24Regular />}
-            shape="circular"
-            title="Logout"
-            onClick={() => setIsLogoutModalOpen(true)}
-          />
+            aria-label="Keluar"
+            title="Keluar"
+            onClick={() => signOut({ callbackUrl: 'https://auth.axara-xai.com/login' })}
+          >
+            <span className={styles.logoutLabel}>Keluar</span>
+          </Button>
         </div>
 
       </header>
