@@ -13,10 +13,10 @@ const inter = Inter({ subsets: ['latin'] });
 // METADATA CONFIGURATION
 // ============================================================================
 export const metadata: Metadata = {
-  title: 'Axara Panel',
+  title: 'Axara XAI - Panel User',
   description: 'Dashboard manajemen ekosistem DataSpace terpusat dengan dukungan AI.',
   icons: {
-    icon: '/logo.svg', // Mendaftarkan logo SVG sebagai favicon
+    icon: '/logo.svg',
   },
 };
 

@@ -11,11 +11,12 @@ export default withAuth(
     },
     pages: {
       // Jika environment = production, lemparkan ke portal auth pusat.
-      // Jika development, gunakan halaman default login NextAuth (yang berisi tombol Mock).
+      // Jika development, biarkan NextAuth menggunakan default halamannya.
       signIn: process.env.NODE_ENV === "production" 
         ? "https://auth.axara-xai.com/login"
-        : "/api/auth/signin", 
+        : undefined, 
     },
+    secret: process.env.NEXTAUTH_SECRET,
   }
 );
 

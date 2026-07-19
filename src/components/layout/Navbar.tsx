@@ -12,8 +12,10 @@ import {
   Dismiss24Regular,
 } from '@fluentui/react-icons';
 import { useSession, signOut } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 import AlertModal from '../ui/AlertModal';
+import { AiAssistantSidebar } from '../sections/ai-assistant/AiAssistantSidebar';
 
 // ============================================================================
 // STYLES DEFINITION
@@ -46,6 +48,7 @@ const useStyles = makeStyles({
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
+    cursor: 'pointer',
   },
   brandLogo: { display: 'block' },
   brandTitle: {
@@ -198,7 +201,9 @@ export default function Navbar() {
   const styles = useStyles();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isAiAssistantOpen, setIsAiAssistantOpen] = useState(false);
   const { data: session } = useSession();
+  const router = useRouter();
 
   const openMenu  = () => setIsMobileMenuOpen(true);
   const closeMenu = () => setIsMobileMenuOpen(false);
@@ -229,15 +234,15 @@ export default function Navbar() {
           />
 
           {/* Brand */}
-          <div className={styles.brandContainer}>
+          <div className={styles.brandContainer} onClick={() => router.push('/dashboard')}>
             <img src="/logo.svg" alt="Axara Panel Logo" width={24} height={24} className={styles.brandLogo} />
             <div className={styles.brandTitle}>Axara Panel</div>
           </div>
 
           {/* Desktop nav links */}
           <nav className={styles.navGroup}>
-            <Button appearance="subtle" icon={<Bot24Regular />}>Ai Asisten</Button>
-            <Button appearance="subtle" icon={<Settings24Regular />}>Pengaturan</Button>
+            <Button appearance="subtle" icon={<Bot24Regular />} onClick={() => setIsAiAssistantOpen(true)}>Axara AI</Button>
+            <Button appearance="subtle" icon={<Settings24Regular />} onClick={() => router.push('/dashboard/settings')}>Pengaturan</Button>
           </nav>
         </div>
 
@@ -291,7 +296,7 @@ export default function Navbar() {
       >
         {/* Drawer header */}
         <div className={styles.drawerHeader}>
-          <div className={styles.brandContainer}>
+          <div className={styles.brandContainer} onClick={() => { closeMenu(); router.push('/dashboard'); }}>
             <img src="/logo.svg" alt="Axara Panel Logo" width={20} height={20} />
             <div className={styles.brandTitle}>Axara Panel</div>
           </div>
@@ -322,7 +327,7 @@ export default function Navbar() {
             className={styles.drawerBtn}
             appearance="subtle"
             icon={<Bot24Regular />}
-            onClick={closeMenu}
+            onClick={() => { closeMenu(); setIsAiAssistantOpen(true); }}
           >
             Ai Asisten
           </Button>
@@ -330,9 +335,9 @@ export default function Navbar() {
             className={styles.drawerBtn}
             appearance="subtle"
             icon={<Settings24Regular />}
-            onClick={closeMenu}
+            onClick={() => { closeMenu(); router.push('/dashboard/settings'); }}
           >
-            Settings
+            Pengaturan
           </Button>
 
           <div className={styles.divider} />
@@ -370,6 +375,15 @@ export default function Navbar() {
         isDanger={true}
         onConfirm={handleConfirmLogout}
         onCancel={() => setIsLogoutModalOpen(false)}
+      />
+
+      {/* ================================================================
+          AI ASSISTANT SIDEBAR
+      ================================================================ */}
+      <AiAssistantSidebar 
+        isOpen={isAiAssistantOpen} 
+        onClose={() => setIsAiAssistantOpen(false)} 
+        userName={session?.user?.name || 'Guest'} 
       />
     </>
   );

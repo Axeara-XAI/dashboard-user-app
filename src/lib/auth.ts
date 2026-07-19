@@ -3,25 +3,23 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { db } from "../db/index";
 
 export const authOptions: NextAuthOptions = {
-  providers: process.env.NODE_ENV === "development" 
-    ? [
-        CredentialsProvider({
-          name: "Developer Mock",
-          credentials: {
-            username: { label: "Ketik apa saja untuk login", type: "text", placeholder: "developer" }
-          },
-          async authorize() {
-            // Memberikan akses otomatis tanpa verifikasi apapun di mode lokal
-            return { 
-              id: "dev-1", 
-              name: "Dr. Developer (Mock)", 
-              email: "dev@axara.local", 
-              role: "admin" 
-            };
-          }
-        })
-      ]
-    : [],
+  providers: [
+    CredentialsProvider({
+      name: "Developer Mock",
+      credentials: {
+        username: { label: "Ketik apa saja untuk login", type: "text", placeholder: "developer" }
+      },
+      async authorize() {
+        // Memberikan akses otomatis tanpa verifikasi apapun di mode lokal
+        return { 
+          id: "dev-1", 
+          name: "Dr. Developer (Mock)", 
+          email: "dev@axara.local", 
+          role: "admin" 
+        };
+      }
+    })
+  ],
   callbacks: {
     async jwt({ token, user }) {
       // Jika dari authorize (mode mock lokal), copy role ke token
@@ -59,8 +57,15 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
   },
+  pages: {
+    signIn: process.env.NODE_ENV === "production" 
+      ? "https://auth.axara-xai.com/login"
+      : undefined,
+    error: process.env.NODE_ENV === "production"
+      ? "https://auth.axara-xai.com/error"
+      : undefined,
+  },
   secret: process.env.NEXTAUTH_SECRET,
-  /*
   cookies: {
     sessionToken: {
       name: process.env.NODE_ENV === "production" 
@@ -76,5 +81,4 @@ export const authOptions: NextAuthOptions = {
       },
     },
   },
-  */
 };

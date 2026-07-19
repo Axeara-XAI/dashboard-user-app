@@ -96,7 +96,7 @@ model patients {
   id                    Int           @id @default(autoincrement())
   user_id               Int
   patient_name          String
-  father_name           String?       @db.VarChar(255)
+  father_name           String?
   date_of_birth         DateTime      @db.Date
   medical_record_number String        @unique
   created_at            DateTime      @default(now())
@@ -145,6 +145,7 @@ model users {
   provider        String            @default("credentials")
   provider_id     String?
   created_at      DateTime          @default(now())
+  gender          Gender?
   patients        patients[]
   ticket_messages ticket_messages[]
   tickets         tickets[]
@@ -176,4 +177,9 @@ enum UserRole {
   user
   admin
   mitra
+}
+
+enum Gender {
+  male
+  female
 }
