@@ -25,7 +25,6 @@ dist-ssr
 
 # ## Environment Variables
 # Crucial: Ensure local env configurations are never pushed to public repositories
-.env
 .env*.local
 .env.development.local
 .env.test.local
