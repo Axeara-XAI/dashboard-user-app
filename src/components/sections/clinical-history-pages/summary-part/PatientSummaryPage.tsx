@@ -76,7 +76,7 @@ const useStyles = makeStyles({
   tableContainer: {
     border: `1px solid ${tokens.colorNeutralStroke1}`,
     borderRadius: tokens.borderRadiusMedium,
-    overflow: 'hidden',
+    overflowX: 'auto',
   },
   recommendationRow: {
     backgroundColor: tokens.colorBrandBackground2,
@@ -200,6 +200,14 @@ export default function PatientSummaryPage({ id }: { id: string }) {
             <div className={styles.infoRow}>
               <Text className={styles.infoLabel}>Tanggal Lahir</Text>
               <Text>: {birthDate.toLocaleDateString('id-ID')} ({age} Tahun)</Text>
+            </div>
+            <div className={styles.infoRow}>
+              <Text className={styles.infoLabel}>Golongan Darah</Text>
+              <Text>: {patient.blood_type || '-'}</Text>
+            </div>
+            <div className={styles.infoRow}>
+              <Text className={styles.infoLabel}>Jaminan Kesehatan</Text>
+              <Text>: {patient.health_insurance || '-'}</Text>
             </div>
             <div className={styles.infoRow}>
               <Text className={styles.infoLabel}>Tanggal Cetak</Text>

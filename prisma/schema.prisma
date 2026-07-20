@@ -99,6 +99,10 @@ model patients {
   father_name           String?
   date_of_birth         DateTime      @db.Date
   medical_record_number String        @unique
+  blood_type            String?
+  patient_status        String?
+  health_insurance      String?
+  primary_risk_factor   String?
   created_at            DateTime      @default(now())
   assessments           assessments[]
   users                 users         @relation(fields: [user_id], references: [id], onDelete: Cascade)

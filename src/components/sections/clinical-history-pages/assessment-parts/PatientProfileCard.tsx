@@ -3,7 +3,9 @@
 import React, { useState } from 'react';
 import { makeStyles, tokens, Card, Avatar, Text, Button, Divider, Spinner } from '@fluentui/react-components';
 import { PersonRegular, DocumentArrowDownRegular } from '@fluentui/react-icons';
+import { useSession } from 'next-auth/react';
 import { PatientContainer } from '../directory-parts/DirectoryTable';
+import { AssessmentRecord } from '../clinical-history-pages';
 
 const useStyles = makeStyles({
   patientCard: { 
@@ -104,13 +106,29 @@ const InfoRow = ({ label, value, isLink = false }: { label: string, value: React
 // ============================================================================
 interface PatientProfileCardProps {
   patient: PatientContainer | null | undefined;
+  latestAssessment?: AssessmentRecord;
 }
 
-export default function PatientProfileCard({ patient }: PatientProfileCardProps) {
+export default function PatientProfileCard({ patient, latestAssessment }: PatientProfileCardProps) {
   const styles = useStyles();
   const [isPrinting, setIsPrinting] = useState(false);
+  const { data: session } = useSession();
+  
+  const doctorName = session?.user?.name ? `dr. ${session.user.name}` : 'Dokter Penanggung Jawab';
 
   if (!patient) return null;
+
+  // AUTO CALCULATE RISK FACTOR
+  let calculatedRisk = 'Belum Ada Penilaian';
+  if (latestAssessment) {
+    if (latestAssessment.riskLabel === 'FGR') calculatedRisk = 'Tinggi (FGR)';
+    else calculatedRisk = 'Rendah (Non-FGR)';
+  }
+  
+  const displayRiskFactor = patient.primaryRiskFactor || calculatedRisk;
+  const displayBloodType = patient.bloodType || 'Belum Diatur';
+  const displayStatus = patient.patientStatus || 'Rawat Jalan (Aktif)';
+  const displayInsurance = patient.healthInsurance || 'Belum Diatur';
 
   return (
     <Card className={styles.patientCard}>
@@ -163,16 +181,16 @@ export default function PatientProfileCard({ patient }: PatientProfileCardProps)
         
         <div className={styles.column}>
           <InfoRow label="No. Rekam Medis" value={patient.mrn} isLink={true} />
-          <InfoRow label="Status Pasien" value="Rawat Jalan (Aktif)" />
+          <InfoRow label="Status Pasien" value={displayStatus} />
           <InfoRow label="Tanggal Lahir" value={patient.dob} />
           <InfoRow label="Kunjungan Terakhir" value={patient.lastVisit} />
         </div>
 
         <div className={styles.column}>
-          <InfoRow label="Golongan Darah" value="O+" />
-          <InfoRow label="Faktor Risiko Utama" value="Hipertensi Gestasional" />
-          <InfoRow label="Dokter Penanggung Jawab" value="dr. Andi Surya, Sp.OG" isLink={true} />
-          <InfoRow label="Jaminan Kesehatan" value="BPJS Kesehatan Kelas 1" />
+          <InfoRow label="Golongan Darah" value={displayBloodType} />
+          <InfoRow label="Faktor Risiko Utama" value={displayRiskFactor} />
+          <InfoRow label="Dokter Penanggung Jawab" value={doctorName} isLink={true} />
+          <InfoRow label="Jaminan Kesehatan" value={displayInsurance} />
         </div>
 
       </div>

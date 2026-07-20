@@ -1,19 +1,29 @@
 import { NextResponse } from 'next/server';
 import { db } from '../../../db';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '../../../lib/auth';
 
 export async function POST(req: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.email) {
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
+
+    const dbUser = await db.users.findUnique({
+      where: { email: session.user.email }
+    });
+
+    if (!dbUser) {
+      return NextResponse.json({ success: false, message: 'User not found' }, { status: 401 });
+    }
+
     const body = await req.json();
     const { formData, apiData, editId } = body;
 
-    let guestUser = await db.users.findUnique({ where: { email: 'guest@axara.com' } });
-    if (!guestUser) {
-      guestUser = await db.users.create({
-        data: {
-          email: 'guest@axara.com',
-          name: 'Guest User',
-        },
-      });
+    // VALIDASI DASAR
+    if (Number(formData.mage) < 0 || Number(formData.fage) < 0 || parseFloat(formData.hemoglob) < 0) {
+      return NextResponse.json({ success: false, message: 'Data tidak valid (rentang negatif tidak diizinkan)' }, { status: 400 });
     }
 
     const rmNumber = `RM-${Date.now()}`;
@@ -22,7 +32,8 @@ export async function POST(req: Request) {
       if (editId) {
         const oldPatientId = parseInt(editId, 10);
         if (!isNaN(oldPatientId)) {
-          await tx.patients.delete({ where: { id: oldPatientId } }).catch(() => {});
+          // Pastikan patient yang dihapus milik user ini (keamanan)
+          await tx.patients.deleteMany({ where: { id: oldPatientId, user_id: dbUser.id } }).catch(() => {});
         }
       }
 
@@ -30,9 +41,9 @@ export async function POST(req: Request) {
         data: {
           patient_name: formData.nama_ibu || 'Anonim',
           father_name: formData.nama_ayah || null,
-          date_of_birth: new Date('1990-01-01'),
+          date_of_birth: new Date('1990-01-01'), // TODO: Sebaiknya hitung DOB dari MAGE jika tidak ada
           medical_record_number: rmNumber,
-          users: { connect: { id: guestUser.id } },
+          users: { connect: { id: dbUser.id } },
         },
       });
 

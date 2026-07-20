@@ -3,10 +3,13 @@
 import React, { useEffect, useState } from 'react';
 import { makeStyles, Title3, Spinner } from '@fluentui/react-components';
 
+import useSWR from 'swr';
 // Impor sub-sections internal
 import ServicesSection from './ServicesSection';
 import DashboardStatsSection from '../dashboard-pages/dashboard-part/DashboardStatsSection';
 import DashboardRecentSection from '../dashboard-pages/dashboard-part/DashboardRecentSection';
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 const useStyles = makeStyles({
   dashboardWrapper: {
@@ -32,27 +35,20 @@ const useStyles = makeStyles({
 
 export default function DashboardMain() {
   const styles = useStyles();
-  const [stats, setStats] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  
+  const { data: statsResponse, isLoading } = useSWR('/api/get-stats', fetcher, {
+    refreshInterval: 0,
+    revalidateOnFocus: true,
+  });
 
-  useEffect(() => {
-    fetch('/api/get-stats')
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          setStats(data.data);
-        }
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
+  const stats = statsResponse?.success ? statsResponse.data : null;
 
   return (
     <div className={styles.dashboardWrapper}>
       {/* 1. Bagian Menu Utama / Navigasi Layanan */}
       <ServicesSection />
 
-      {loading ? (
+      {isLoading ? (
         <div className={styles.loadingContainer}>
           <Spinner size="medium" label="Sinkronisasi data ringkasan..." />
         </div>

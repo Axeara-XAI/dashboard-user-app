@@ -1,10 +1,30 @@
 import { NextResponse } from 'next/server';
 import { db } from '../../../db/index';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '../../../lib/auth';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.email) {
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
+
+    let dbUser = await db.users.findUnique({
+      where: { email: session.user.email }
+    });
+
+    if (!dbUser) {
+      dbUser = await db.users.create({
+        data: {
+          email: session.user.email,
+          name: session.user.name || 'Doctor',
+        }
+      });
+    }
+
     // 1. Total Patients
     const totalPatients = await db.patients.count();
 
@@ -13,18 +33,14 @@ export async function GET() {
 
     // 3. FGR Detected (Risk Label == 'FGR')
     const totalFGR = await db.assessment_results.count({
-      where: {
-        risk_label: 'FGR',
-      },
+      where: { risk_label: 'FGR' },
     });
 
     const fgrPercentage = totalAssessments > 0 ? Math.round((totalFGR / totalAssessments) * 100) : 0;
 
     // 4. Latest 5 Patients/Assessments
     const rawAssessments = await db.assessments.findMany({
-      orderBy: {
-        created_at: 'desc',
-      },
+      orderBy: { created_at: 'desc' },
       take: 5,
       include: {
         patients: true,

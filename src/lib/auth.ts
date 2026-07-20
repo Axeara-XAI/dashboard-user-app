@@ -5,42 +5,34 @@ import { db } from "../db/index";
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
-      name: "Developer Mock",
-      credentials: {
-        username: { label: "Ketik apa saja untuk login", type: "text", placeholder: "developer" }
-      },
+      name: "Dashboard (No Local Login)",
+      credentials: {},
       async authorize() {
-        // Memberikan akses otomatis tanpa verifikasi apapun di mode lokal
-        return { 
-          id: "dev-1", 
-          name: "Dr. Developer (Mock)", 
-          email: "dev@axara.local", 
-          role: "admin" 
-        };
+        // user-dashboard tidak boleh menangani proses login mandiri.
+        // Proses login DITANGANI sepenuhnya oleh auth-app.
+        return null;
       }
     })
   ],
   callbacks: {
     async jwt({ token, user }) {
-      // Jika dari authorize (mode mock lokal), copy role ke token
-      if (user) {
-        token.id = user.id;
-        token.role = (user as any).role || "admin";
-        token.name = user.name;
-        return token;
-      }
+      // (Tidak ada user mock lagi)
 
       // Di mode produksi, cookie JWT diterbitkan oleh Auth Repo.
       // Kita coba mengambil data terbaru dari database (jika email ada).
       if (token.email) {
-        const dbUser = await db.users.findUnique({
-          where: { email: token.email },
-          select: { id: true, role: true, name: true }
-        });
-        if (dbUser) {
-          token.id = dbUser.id.toString();
-          token.role = dbUser.role;
-          token.name = dbUser.name;
+        try {
+          const dbUser = await db.users.findUnique({
+            where: { email: token.email },
+            select: { id: true, role: true, name: true }
+          });
+          if (dbUser) {
+            token.id = dbUser.id.toString();
+            token.role = dbUser.role;
+            token.name = dbUser.name;
+          }
+        } catch (error) {
+          console.warn("Could not reach DB during JWT callback. Using existing token data.", error);
         }
       }
       return token;
@@ -60,10 +52,10 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: process.env.NODE_ENV === "production" 
       ? "https://auth.axara-xai.com/login"
-      : undefined,
+      : "http://localhost:3000/login",
     error: process.env.NODE_ENV === "production"
       ? "https://auth.axara-xai.com/error"
-      : undefined,
+      : "http://localhost:3000/error",
   },
   secret: process.env.NEXTAUTH_SECRET,
   cookies: {

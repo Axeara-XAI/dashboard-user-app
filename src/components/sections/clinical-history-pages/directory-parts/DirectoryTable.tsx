@@ -12,6 +12,7 @@ import AlertModal from '../../../ui/AlertModal';
 const useStyles = makeStyles({
   tableContainer: {
     marginTop: '4px',
+    overflowX: 'auto',
   },
   patientNameCell: {
     display: 'flex',
@@ -32,6 +33,10 @@ export interface PatientContainer {
   mrn: string;
   dob: string;
   lastVisit: string;
+  bloodType?: string;
+  patientStatus?: string;
+  healthInsurance?: string;
+  primaryRiskFactor?: string;
 }
 
 interface DirectoryTableProps {

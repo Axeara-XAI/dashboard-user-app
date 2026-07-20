@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import useSWR from 'swr';
 import { makeStyles, tokens, Button, Spinner, Text } from '@fluentui/react-components';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
@@ -60,6 +61,10 @@ function mapToPatientContainer(raw: any): PatientContainer {
     mrn: raw.medicalRecordNumber,
     dob: `${formattedDob} (${age} Tahun)`,
     lastVisit,
+    bloodType: raw.bloodType,
+    patientStatus: raw.patientStatus,
+    healthInsurance: raw.healthInsurance,
+    primaryRiskFactor: raw.primaryRiskFactor,
   };
 }
 
@@ -79,6 +84,7 @@ function mapToAssessmentRecord(raw: any): AssessmentRecord {
   };
 }
 
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 // ============================================================================
 // MAIN PAGE COMPONENT
 // ============================================================================
@@ -88,34 +94,18 @@ export default function ClinicalHistoryMain() {
 
   const [selectedPatient, setSelectedPatient] = useState<PatientContainer | null>(null);
 
-  // State Pasien
-  const [patients, setPatients] = useState<PatientContainer[]>([]);
-  const [isPatientsLoading, setIsPatientsLoading] = useState(true);
-  const [patientsError, setPatientsError] = useState<string | null>(null);
+  // SWR untuk Pasien
+  const { data: patientsRes, error: patientsSwrError, mutate: mutatePatients, isLoading: isPatientsLoading } = useSWR('/api/get-patients', fetcher);
+  
+  const patientsError = patientsSwrError ? 'Gagal memuat daftar pasien.' : (patientsRes && !patientsRes.success ? patientsRes.message : null);
+  const patients: PatientContainer[] = (patientsRes?.data || []).map(mapToPatientContainer);
 
-  // State Asesmen
+  const fetchPatients = useCallback(() => mutatePatients(), [mutatePatients]);
+
+  // State Asesmen (Asesmen tidak butuh SWR global karena per pasien)
   const [assessments, setAssessments] = useState<AssessmentRecord[]>([]);
   const [isAssessmentsLoading, setIsAssessmentsLoading] = useState(false);
   const [assessmentsError, setAssessmentsError] = useState<string | null>(null);
-
-  const fetchPatients = useCallback(async () => {
-    setIsPatientsLoading(true);
-    setPatientsError(null);
-    try {
-      const res = await fetch('/api/get-patients');
-      const json = await res.json();
-      if (!json.success) throw new Error(json.message);
-      setPatients(json.data.map(mapToPatientContainer));
-    } catch (err: any) {
-      setPatientsError(err.message || 'Gagal memuat daftar pasien.');
-    } finally {
-      setIsPatientsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchPatients();
-  }, [fetchPatients]);
 
   const searchParams = useSearchParams();
   const patientIdFromQuery = searchParams.get('patientId');

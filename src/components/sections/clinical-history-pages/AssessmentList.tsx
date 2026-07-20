@@ -37,7 +37,7 @@ export default function AssessmentList({ patient, onBack, onNewAnalysis, assessm
   return (
     <div className={styles.container}>
       <AssessmentHeader onBack={onBack} />
-      <PatientProfileCard patient={patient} />
+      <PatientProfileCard patient={patient} latestAssessment={assessments[0]} />
       <AssessmentTable 
         assessments={assessments} 
         isLoading={isLoading} 
