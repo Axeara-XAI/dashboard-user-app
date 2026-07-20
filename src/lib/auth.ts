@@ -52,10 +52,10 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: process.env.NODE_ENV === "production" 
       ? "https://auth.axara-xai.com/login"
-      : "http://localhost:3000/login",
+      : "http://localhost:3001/login",
     error: process.env.NODE_ENV === "production"
       ? "https://auth.axara-xai.com/error"
-      : "http://localhost:3000/error",
+      : "http://localhost:3001/error",
   },
   secret: process.env.NEXTAUTH_SECRET,
   cookies: {

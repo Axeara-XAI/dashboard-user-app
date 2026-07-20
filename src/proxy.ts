@@ -14,7 +14,7 @@ export default withAuth(
       // Jika development, biarkan NextAuth menggunakan default halamannya.
       signIn: process.env.NODE_ENV === "production" 
         ? "https://auth.axara-xai.com/login"
-        : undefined, 
+        : "http://localhost:3001/login", 
     },
     secret: process.env.NEXTAUTH_SECRET,
   }

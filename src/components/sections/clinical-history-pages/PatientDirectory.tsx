@@ -7,10 +7,9 @@ import { useRouter } from 'next/navigation';
 import DirectoryHeader from './directory-parts/DirectoryHeader';
 import DirectoryCommandBar from './directory-parts/DirectoryCommandBar';
 import DirectoryFilterBar from './directory-parts/DirectoryFilterBar';
-import DirectoryTable, { PatientContainer } from './directory-parts/DirectoryTable';
+import DirectoryTable from './directory-parts/DirectoryTable';
 import DirectoryFooter from './directory-parts/DirectoryFooter';
-
-export type { PatientContainer };
+import { PatientContainer } from '@/utils/api-helpers';
 
 const useStyles = makeStyles({
   container: {

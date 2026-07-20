@@ -8,6 +8,7 @@ import {
 import { PersonRegular, ArrowRightRegular, EditRegular, DeleteRegular } from '@fluentui/react-icons';
 import { useRouter } from 'next/navigation';
 import AlertModal from '../../../ui/AlertModal';
+import { PatientContainer } from '@/utils/api-helpers';
 
 const useStyles = makeStyles({
   tableContainer: {
@@ -27,17 +28,7 @@ const useStyles = makeStyles({
   },
 });
 
-export interface PatientContainer {
-  id: string;
-  name: string;
-  mrn: string;
-  dob: string;
-  lastVisit: string;
-  bloodType?: string;
-  patientStatus?: string;
-  healthInsurance?: string;
-  primaryRiskFactor?: string;
-}
+
 
 interface DirectoryTableProps {
   patients: PatientContainer[];

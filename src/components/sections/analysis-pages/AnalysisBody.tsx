@@ -285,6 +285,8 @@ export default function AnalysisBody({ currentStep, setCurrentStep, editId, pati
 
   // State untuk menangani Data AI dan Proses Penyimpanan
   const [apiData, setApiData] = useState<any>(null); 
+  const [lastAnalyzedFormData, setLastAnalyzedFormData] = useState<string | null>(null);
+  const [isDataChangedModalOpen, setIsDataChangedModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [alertConfig, setAlertConfig] = useState<{type: 'success' | 'error' | 'info' | 'warning', message: string}>({ 
@@ -343,6 +345,14 @@ export default function AnalysisBody({ currentStep, setCurrentStep, editId, pati
           setIsAlertOpen(true);
           return; 
         }
+      }
+    }
+
+    // Logika Deteksi Perubahan Data saat masuk ke Step 4 (Hasil Analisis)
+    if (targetStep === 4 && apiData !== null && lastAnalyzedFormData !== null) {
+      if (JSON.stringify(formData) !== lastAnalyzedFormData) {
+        setIsDataChangedModalOpen(true);
+        return; // Hentikan perpindahan sementara sampai dikonfirmasi
       }
     }
 
@@ -406,20 +416,32 @@ export default function AnalysisBody({ currentStep, setCurrentStep, editId, pati
       </div>
 
       {/* --- INFO TEXT SECTION --- */}
-      <div className={styles.infoSection}>
-        <Text>
-          Formulir ini digunakan untuk mengumpulkan data komprehensif pasien guna analisis laporan medis. 
-          Pastikan setiap detail yang dimasukkan akurat sesuai dengan kode variabel (MAGE, MEDUC, dll) 
-          untuk keperluan dataset medis.
-        </Text>
-        <Link href="/dashboard/panduan">Pelajari prosedur pengisian data</Link>
-      </div>
+      {currentStep < 4 && (
+        <div className={styles.infoSection}>
+          <Text>
+            Formulir ini digunakan untuk mengumpulkan data komprehensif pasien guna analisis laporan medis. 
+            Pastikan setiap detail yang dimasukkan akurat sesuai dengan kode variabel (MAGE, MEDUC, dll) 
+            untuk keperluan dataset medis.
+          </Text>
+          <Link href="/dashboard/panduan">Pelajari prosedur pengisian data</Link>
+        </div>
+      )}
 
       {/* --- DYNAMIC FORM RENDERING DENGAN PROPS --- */}
       {currentStep === 1 && <IdentitasOrangTua data={formData} updateFields={updateFields} />}
       {currentStep === 2 && <RiwayatKesehatanIbu data={formData} updateFields={updateFields} />}
       {currentStep === 3 && <DataKehamilan data={formData} updateFields={updateFields} />}
-      {currentStep === 4 && <HasilAnalisis formData={formData} onApiDataLoaded={setApiData} />}
+      {currentStep === 4 && (
+        <HasilAnalisis 
+          formData={formData} 
+          apiData={apiData} 
+          onApiDataLoaded={(data) => {
+            setApiData(data);
+            setLastAnalyzedFormData(JSON.stringify(formData));
+          }}
+          onClearApiData={() => setApiData(null)}
+        />
+      )}
 
       {/* --- FOOTER DI RENDER DI SINI --- */}
       <AnalysisFooter 
@@ -427,6 +449,7 @@ export default function AnalysisBody({ currentStep, setCurrentStep, editId, pati
         setCurrentStep={handleStepNavigation} 
         onSave={handleSaveData} 
         isSaving={isSaving} 
+        isAnalysisReady={!!apiData}
       />
 
       {/* --- ALERT MODAL --- */}
@@ -443,6 +466,24 @@ export default function AnalysisBody({ currentStep, setCurrentStep, editId, pati
           message={alertConfig.message} 
         />
       )}
+
+      {/* --- MODAL KONFIRMASI PERUBAHAN DATA --- */}
+      <AlertModal 
+        isOpen={isDataChangedModalOpen} 
+        title="Perubahan Data Terdeteksi"
+        content="Anda telah mengubah beberapa data medis sejak analisis terakhir. Apakah Anda ingin menjalankan ulang model AI untuk menganalisis data terbaru ini?"
+        confirmText="Ya, Analisis Ulang"
+        cancelText="Tidak, Gunakan Hasil Lama"
+        onConfirm={() => {
+          setApiData(null); 
+          setCurrentStep(4);
+          setIsDataChangedModalOpen(false);
+        }}
+        onCancel={() => {
+          setCurrentStep(4);
+          setIsDataChangedModalOpen(false);
+        }}
+      />
 
     </div>
   );

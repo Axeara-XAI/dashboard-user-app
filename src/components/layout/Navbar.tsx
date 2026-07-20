@@ -16,6 +16,7 @@ import { useRouter } from 'next/navigation';
 
 import AlertModal from '../ui/AlertModal';
 import { AiAssistantSidebar } from '../sections/ai-assistant/AiAssistantSidebar';
+import { GlobalSearchModal } from './GlobalSearchModal';
 
 // ============================================================================
 // STYLES DEFINITION
@@ -202,6 +203,18 @@ export default function Navbar() {
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAiAssistantOpen, setIsAiAssistantOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsSearchOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
   const { data: session } = useSession();
   const router = useRouter();
 
@@ -209,7 +222,10 @@ export default function Navbar() {
   const closeMenu = () => setIsMobileMenuOpen(false);
 
   const handleConfirmLogout = () => {
-    signOut({ callbackUrl: 'https://auth.axara-xai.com/login' });
+    const loginUrl = process.env.NODE_ENV === "production" 
+      ? "https://auth.axara-xai.com/login"
+      : "http://localhost:3001/login";
+    signOut({ callbackUrl: loginUrl });
     setIsLogoutModalOpen(false);
   };
 
@@ -248,11 +264,9 @@ export default function Navbar() {
 
         {/* CENTER: Search bar (desktop only) */}
         <div className={styles.headerCenter}>
-          <Input
-            className={styles.searchBar}
-            placeholder="Cari sumber daya, layanan, dan dokumen..."
-            contentBefore={<Search24Regular />}
-            appearance="outline"
+          <GlobalSearchModal 
+            isOpen={isSearchOpen} 
+            onOpenChange={setIsSearchOpen} 
           />
         </div>
 
@@ -268,7 +282,7 @@ export default function Navbar() {
             icon={<SignOut24Regular />}
             aria-label="Keluar"
             title="Keluar"
-            onClick={() => signOut({ callbackUrl: 'https://auth.axara-xai.com/login' })}
+            onClick={() => setIsLogoutModalOpen(true)}
           >
             <span className={styles.logoutLabel}>Keluar</span>
           </Button>
@@ -315,9 +329,14 @@ export default function Navbar() {
           {/* Search inside drawer */}
           <Input
             className={styles.drawerSearch}
-            placeholder="Cari sumber daya..."
+            placeholder="Pencarian (Ketuk di sini)..."
             contentBefore={<Search24Regular />}
             appearance="outline"
+            onClick={() => {
+              closeMenu();
+              setIsSearchOpen(true);
+            }}
+            readOnly
           />
 
           <div className={styles.divider} />
@@ -385,6 +404,7 @@ export default function Navbar() {
         onClose={() => setIsAiAssistantOpen(false)} 
         userName={session?.user?.name || 'Guest'} 
       />
+
     </>
   );
 }

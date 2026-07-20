@@ -7,7 +7,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import {
   AssessmentList,
   PatientDirectory,
-  PatientContainer,
 } from './clinical-history-pages';
 
 const useStyles = makeStyles({
@@ -31,60 +30,13 @@ const useStyles = makeStyles({
   },
 });
 
-export interface AssessmentRecord {
-  id: string;
-  date: string;
-  probability: number;
-  riskLabel: string;
-  narrative: string;
-}
-
-// ============================================================================
-// HELPERS: Mapping data API → tipe yang dibutuhkan UI
-// ============================================================================
-function mapToPatientContainer(raw: any): PatientContainer {
-  const dob = raw.dateOfBirth || '1990-01-01';
-  const age = new Date().getFullYear() - new Date(dob).getFullYear();
-  const formattedDob = new Date(dob).toLocaleDateString('id-ID', {
-    day: 'numeric', month: 'long', year: 'numeric'
-  });
-
-  const lastVisit = raw.createdAt
-    ? new Date(raw.createdAt).toLocaleDateString('id-ID', {
-        day: 'numeric', month: 'long', year: 'numeric',
-      })
-    : '-';
-
-  return {
-    id: String(raw.id),
-    name: raw.patientName,
-    mrn: raw.medicalRecordNumber,
-    dob: `${formattedDob} (${age} Tahun)`,
-    lastVisit,
-    bloodType: raw.bloodType,
-    patientStatus: raw.patientStatus,
-    healthInsurance: raw.healthInsurance,
-    primaryRiskFactor: raw.primaryRiskFactor,
-  };
-}
-
-function mapToAssessmentRecord(raw: any): AssessmentRecord {
-  const date = raw.createdAt
-    ? new Date(raw.createdAt).toLocaleDateString('id-ID', {
-        day: 'numeric', month: 'long', year: 'numeric',
-      })
-    : '-';
-
-  return {
-    id: String(raw.assessmentId),
-    date,
-    probability: Math.round((raw.probability ?? 0) * 100),
-    riskLabel: raw.riskLabel ?? 'LOW',
-    narrative: raw.narrativeExplanation ?? 'Narasi tidak tersedia.',
-  };
-}
-
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+import { 
+  fetcher, 
+  PatientContainer, 
+  AssessmentRecord, 
+  mapToPatientContainer, 
+  mapToAssessmentRecord 
+} from '@/utils/api-helpers';
 // ============================================================================
 // MAIN PAGE COMPONENT
 // ============================================================================
@@ -102,30 +54,21 @@ export default function ClinicalHistoryMain() {
 
   const fetchPatients = useCallback(() => mutatePatients(), [mutatePatients]);
 
-  // State Asesmen (Asesmen tidak butuh SWR global karena per pasien)
-  const [assessments, setAssessments] = useState<AssessmentRecord[]>([]);
-  const [isAssessmentsLoading, setIsAssessmentsLoading] = useState(false);
-  const [assessmentsError, setAssessmentsError] = useState<string | null>(null);
+  // State Asesmen (SWR)
+  const { 
+    data: assessmentsRes, 
+    error: assessmentsSwrError, 
+    isLoading: isAssessmentsLoading 
+  } = useSWR(selectedPatient ? `/api/get-assessments/${selectedPatient.id}` : null, fetcher);
+
+  const assessmentsError = assessmentsSwrError ? 'Gagal memuat riwayat asesmen.' : (assessmentsRes && !assessmentsRes.success ? assessmentsRes.message : null);
+  const assessments: AssessmentRecord[] = (assessmentsRes?.data || []).map(mapToAssessmentRecord);
 
   const searchParams = useSearchParams();
   const patientIdFromQuery = searchParams.get('patientId');
 
   const handleSelectPatient = useCallback(async (patient: PatientContainer) => {
     setSelectedPatient(patient);
-    setAssessments([]);
-    setIsAssessmentsLoading(true);
-    setAssessmentsError(null);
-
-    try {
-      const res = await fetch(`/api/get-assessments/${patient.id}`);
-      const json = await res.json();
-      if (!json.success) throw new Error(json.message);
-      setAssessments(json.data.map(mapToAssessmentRecord));
-    } catch (err: any) {
-      setAssessmentsError(err.message || 'Gagal memuat riwayat asesmen.');
-    } finally {
-      setIsAssessmentsLoading(false);
-    }
   }, []);
 
   useEffect(() => {

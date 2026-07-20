@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { makeStyles, tokens } from '@fluentui/react-components';
-import { PatientContainer } from './directory-parts/DirectoryTable';
+import { PatientContainer } from '@/utils/api-helpers';
 import AssessmentHeader from './assessment-parts/AssessmentHeader';
 import PatientProfileCard from './assessment-parts/PatientProfileCard';
 import AssessmentTable from './assessment-parts/AssessmentTable'; 

@@ -49,8 +49,7 @@ export default function HistoryHeader({ patient }: HistoryHeaderProps) {
   const styles = useStyles();
 
   const handleExportSummary = () => {
-    // TODO: Implementasi logika PDF Generate Ringkasan Pasien
-    alert(`Mengunduh ringkasan medis untuk ${patient.name}...`);
+    window.print();
   };
 
   return (
@@ -64,7 +63,14 @@ export default function HistoryHeader({ patient }: HistoryHeaderProps) {
           </Text>
         </div>
       </div>
-      
+      <Button 
+        appearance="primary" 
+        icon={<DocumentPdfRegular />} 
+        onClick={handleExportSummary}
+        className="no-print"
+      >
+        Cetak PDF Ringkasan
+      </Button>
     </div>
   );
 }

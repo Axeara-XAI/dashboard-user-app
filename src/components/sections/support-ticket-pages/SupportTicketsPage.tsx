@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { makeStyles, tokens, Button, Title3, Body1, Link } from '@fluentui/react-components';
+import { makeStyles, tokens, Button, Title3, Body1, Link, Text } from '@fluentui/react-components';
 import { ArrowLeft24Regular } from '@fluentui/react-icons';
 import { useRouter } from 'next/navigation';
+import useSWR from 'swr';
+import { fetcher } from '@/utils/api-helpers';
 
 // Import sub-components & UI
 import AlertModal from '../../ui/AlertModal';
@@ -18,6 +20,9 @@ const useStyles = makeStyles({
     display: 'flex',
     flexDirection: 'column',
     minHeight: 'calc(100vh - 56px)',
+    '@media (max-width: 768px)': {
+      padding: '16px',
+    }
   },
   pageContainer: {
     display: 'flex',
@@ -31,16 +36,23 @@ const useStyles = makeStyles({
     flexDirection: 'column',
     gap: '24px',
   },
+  headerSection: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+    paddingBottom: '16px',
+    marginBottom: '16px',
+  },
   breadcrumb: {
-    fontSize: '14px',
-    color: tokens.colorNeutralForeground2,
+    color: tokens.colorNeutralForeground3,
+    fontSize: '12px',
     display: 'flex',
     alignItems: 'center',
-    gap: '8px',
-    paddingBottom: '16px', // Disesuaikan agar lebih rapi tanpa padding kotak
+    gap: '4px',
+    marginBottom: '4px',
   },
   breadcrumbLink: {
-    color: tokens.colorNeutralForeground2,
+    color: tokens.colorNeutralForeground3,
     cursor: 'pointer',
     textDecoration: 'none',
     ':hover': {
@@ -48,12 +60,13 @@ const useStyles = makeStyles({
       textDecoration: 'underline',
     },
   },
-  header: {
+  backButtonWrapper: {
     display: 'flex',
     alignItems: 'center',
-    gap: '16px',
-    paddingBottom: '16px', // Padding kiri-kanan dihapus
-    borderBottom: `1px solid ${tokens.colorNeutralStroke1}` // Tetap disisakan sebagai garis pemisah judul
+    marginLeft: '-12px', 
+  },
+  pageTitle: {
+    marginTop: '4px', 
   },
   layout: {
     display: 'grid',
@@ -69,27 +82,13 @@ export default function SupportTicketsPage() {
   const styles = useStyles();
   const router = useRouter();
 
-  const [tickets, setTickets] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [alert, setAlert] = useState({ isOpen: false, title: '', message: '' });
 
-  const fetchTickets = () => {
-    setLoading(true);
-    fetch('/api/tickets')
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          setTickets(data.data);
-        }
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  };
+  const { data: ticketsRes, error, mutate, isLoading } = useSWR('/api/tickets', fetcher);
 
-  useEffect(() => {
-    fetchTickets();
-  }, []);
+  const tickets = ticketsRes?.success ? ticketsRes.data : [];
+  const loading = isLoading;
 
   const handleTicketSubmit = async (subject: string, message: string): Promise<boolean> => {
     if (!subject.trim() || !message.trim()) {
@@ -107,7 +106,7 @@ export default function SupportTicketsPage() {
       const data = await res.json();
       
       if (data.success) {
-        fetchTickets(); 
+        mutate();  
         setAlert({ isOpen: true, title: 'Berhasil', message: `Tiket bantuan berhasil dikirim dengan kode ${data.data.ticketCode}. Tim kami akan segera merespons.` });
         return true;
       } else {
@@ -126,20 +125,30 @@ export default function SupportTicketsPage() {
     <div className={styles.pageWrapper}>
       <div className={styles.pageContainer}>
 
-        <div className={styles.breadcrumb}>
-          <Link className={styles.breadcrumbLink} onClick={() => router.push('/dashboard')}>
-            Beranda
-          </Link>
-          <span>&gt;</span>
-          <span>Tiket Bantuan</span>
-        </div>
-
-        <div className={styles.header}>
-          <Button appearance="subtle" icon={<ArrowLeft24Regular />} onClick={() => router.back()} />
-          <div>
-            <Title3>Tiket Bantuan</Title3>
-            <Body1 style={{ display: 'block', color: tokens.colorNeutralForeground3 }}>Sistem pelaporan masalah dan dukungan teknis</Body1>
+        <div className={styles.headerSection}>
+          <div className={styles.breadcrumb}>
+            <Link className={styles.breadcrumbLink} onClick={() => router.push('/dashboard')}>Beranda</Link> <span>&gt;</span> <Text>Tiket Bantuan</Text>
           </div>
+          
+          <div className={styles.backButtonWrapper}>
+            <Button
+              appearance="subtle"
+              icon={<ArrowLeft24Regular />}
+              onClick={() => router.back()}
+              aria-label="Kembali"
+            >
+              Kembali ke halaman utama
+            </Button>
+          </div>
+
+          <Text 
+            size={900} 
+            weight="semibold" 
+            className={styles.pageTitle} 
+            style={{ color: tokens.colorNeutralForeground1 }}
+          >
+            Tiket Bantuan
+          </Text>
         </div>
 
         <div className={styles.innerContent}>

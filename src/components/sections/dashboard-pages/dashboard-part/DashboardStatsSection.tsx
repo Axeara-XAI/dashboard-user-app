@@ -127,7 +127,7 @@ export default function DashboardStatsSection({
           </Text>
         </div>
         <div className={styles.actionArea}>
-          <Button appearance="outline" size="small">
+          <Button appearance="outline" size="small" onClick={() => router.push('/dashboard/analysis-history')}>
             Lihat detail
           </Button>
         </div>
@@ -144,7 +144,7 @@ export default function DashboardStatsSection({
           </Text>
         </div>
         <div className={styles.actionArea}>
-          <Button appearance="outline" size="small">
+          <Button appearance="outline" size="small" onClick={() => router.push('/dashboard/analysis-history')}>
             Lihat detail
           </Button>
         </div>

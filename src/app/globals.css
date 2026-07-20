@@ -129,6 +129,10 @@ a {
     transition: none !important;
     animation: none !important;
   }
+  
+  .no-print {
+    display: none !important;
+  }
 }
 
 @page {

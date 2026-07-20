@@ -12,6 +12,7 @@ interface AnalysisFooterProps {
   setCurrentStep: (step: number) => void;
   onSave?: () => void;       
   isSaving?: boolean;        
+  isAnalysisReady?: boolean;
 }
 
 // ============================================================================
@@ -51,7 +52,8 @@ export default function AnalysisFooter({
   currentStep, 
   setCurrentStep, 
   onSave,       
-  isSaving      
+  isSaving,
+  isAnalysisReady
 }: AnalysisFooterProps) {
   const styles = useStyles();
 
@@ -90,7 +92,7 @@ export default function AnalysisFooter({
           <Button 
             appearance="primary" 
             onClick={handleSubmit}
-            disabled={isSaving} 
+            disabled={isSaving || !isAnalysisReady} 
           >
             {isSaving ? 'Menyimpan...' : 'Simpan Data'}
           </Button>

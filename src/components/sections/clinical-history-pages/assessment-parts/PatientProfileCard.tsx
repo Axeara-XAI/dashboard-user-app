@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { makeStyles, tokens, Card, Avatar, Text, Button, Divider, Spinner } from '@fluentui/react-components';
 import { PersonRegular, DocumentArrowDownRegular } from '@fluentui/react-icons';
 import { useSession } from 'next-auth/react';
-import { PatientContainer } from '../directory-parts/DirectoryTable';
+import { PatientContainer } from '@/utils/api-helpers';
 import { AssessmentRecord } from '../clinical-history-pages';
 
 const useStyles = makeStyles({

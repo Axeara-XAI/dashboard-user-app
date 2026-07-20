@@ -28,7 +28,7 @@ const useStyles = makeStyles({
   },
   tableHeader: {
     display: 'grid',
-    gridTemplateColumns: '2fr 2fr 1fr',
+    gridTemplateColumns: '1.5fr 2fr 2fr 1fr',
     padding: '8px 0',
     borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
     fontWeight: '600',
@@ -37,7 +37,7 @@ const useStyles = makeStyles({
   },
   tableRow: {
     display: 'grid',
-    gridTemplateColumns: '2fr 2fr 1fr',
+    gridTemplateColumns: '1.5fr 2fr 2fr 1fr',
     padding: '12px 0',
     borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
     alignItems: 'center',
@@ -126,6 +126,7 @@ export default function DashboardRecentSection({ assessments }: DashboardRecentS
       <div className={styles.tableContainer}>
         {/* Header Tabel */}
         <div className={styles.tableHeader}>
+          <Text>No. Rekam Medis</Text>
           <Text>Nama</Text>
           <Text>Tipe</Text>
           <Text>Terakhir Dianalisis</Text>
@@ -141,7 +142,12 @@ export default function DashboardRecentSection({ assessments }: DashboardRecentS
           assessments.map((item) => (
             <div key={item.id} className={styles.tableRow}>
               
-              {/* Kolom 1: Ikon & Nama (Berupa Link) */}
+              {/* Kolom 1: No. Rekam Medis */}
+              <Text className={styles.typeText} style={{ fontWeight: 500 }}>
+                {item.medicalRecordNumber}
+              </Text>
+
+              {/* Kolom 2: Ikon & Nama (Berupa Link) */}
               <div className={styles.nameColumn}>
                 {item.riskLabel === 'FGR' ? (
                   <AlertUrgent16Regular color={tokens.colorPaletteRedForeground1} />
@@ -156,12 +162,12 @@ export default function DashboardRecentSection({ assessments }: DashboardRecentS
                 </Link>
               </div>
 
-              {/* Kolom 2: Tipe Layanan / Keterangan */}
+              {/* Kolom 3: Tipe Layanan / Keterangan */}
               <Text className={styles.typeText} truncate>
-                Analisis Risiko FGR (RM: {item.medicalRecordNumber})
+                Analisis Risiko FGR
               </Text>
 
-              {/* Kolom 3: Waktu Relatif */}
+              {/* Kolom 4: Waktu Relatif */}
               <Text className={styles.timeText}>
                 {timeAgo(item.date)}
               </Text>

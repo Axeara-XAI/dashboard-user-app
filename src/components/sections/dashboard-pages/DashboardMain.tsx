@@ -9,7 +9,7 @@ import ServicesSection from './ServicesSection';
 import DashboardStatsSection from '../dashboard-pages/dashboard-part/DashboardStatsSection';
 import DashboardRecentSection from '../dashboard-pages/dashboard-part/DashboardRecentSection';
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+import { fetcher } from '@/utils/api-helpers';
 
 const useStyles = makeStyles({
   dashboardWrapper: {

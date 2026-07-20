@@ -10,7 +10,8 @@ import {
   Title3,
   Divider
 } from '@fluentui/react-components';
-import { Search20Regular, Person20Regular } from '@fluentui/react-icons';
+import { Search20Regular, Person20Regular, ArrowLeft20Regular } from '@fluentui/react-icons';
+import { useRouter } from 'next/navigation';
 import { AccountSettings } from './setting-part/AccountSettings';
 import { SecuritySettings } from './setting-part/SecuritySettings';
 
@@ -63,6 +64,7 @@ type TabValue = 'profile';
 
 export const SettingsMain: React.FC<SettingsMainProps> = ({ initialName, email, role }) => {
   const styles = useStyles();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabValue>('profile');
 
   const onTabSelect = (event: unknown, data: { value: unknown }) => {
@@ -74,6 +76,24 @@ export const SettingsMain: React.FC<SettingsMainProps> = ({ initialName, email, 
       {/* SIDEBAR KIRI */}
       <div className={styles.sidebar}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          
+          {/* Tombol Kembali */}
+          <div 
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px', 
+              cursor: 'pointer', 
+              color: tokens.colorBrandForeground1,
+              marginTop: '-4px',
+              marginBottom: '4px'
+            }} 
+            onClick={() => router.push('/dashboard')}
+          >
+            <ArrowLeft20Regular />
+            <span style={{ fontSize: '13px', fontWeight: 600 }}>Kembali ke Halaman Utama</span>
+          </div>
+
           <div className={styles.sidebarTitle}>
             <Title3>Pengaturan Akun</Title3>
           </div>

@@ -10,6 +10,7 @@ import {
   CardHeader,
   Spinner,
   Divider,
+  Button,
 } from '@fluentui/react-components';
 import {
   ArrowRightRegular,
@@ -150,12 +151,9 @@ const useStyles = makeStyles({
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: '60px 20px',
+    padding: '80px 20px',
     gap: '24px',
     textAlign: 'center',
-    backgroundColor: tokens.colorNeutralBackground2,
-    borderRadius: tokens.borderRadiusLarge,
-    border: `1px dashed ${tokens.colorBrandStroke1}`,
     width: '100%',
   },
 });
@@ -203,23 +201,38 @@ const getFriendlyLabel = (featureName: string): string =>
 // ============================================================================
 interface StepProps {
   formData: AnalysisFormData;
+  apiData?: any;
   onApiDataLoaded?: (data: any) => void;
+  onClearApiData?: () => void;
 }
 
 // ============================================================================
 // MAIN COMPONENT
 // ============================================================================
-export default function HasilAnalisis({ formData, onApiDataLoaded }: StepProps) {
+export default function HasilAnalisis({ formData, apiData, onApiDataLoaded, onClearApiData }: StepProps) {
   const styles = useStyles();
 
   const [isLoading, setIsLoading] = useState(true);
-  const [apiData, setApiData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
   // Mencegah double-fetch di React Strict Mode
   const hasFetched = useRef(false);
 
+  // Reset fetching status if apiData becomes null (e.g. User clicked "Analisis Ulang")
   useEffect(() => {
+    if (apiData === null) {
+      hasFetched.current = false;
+      setIsLoading(true);
+    }
+  }, [apiData]);
+
+  useEffect(() => {
+    // Jika data sudah di-cache dari parent, lewati fetching
+    if (apiData) {
+      setIsLoading(false);
+      return;
+    }
+
     if (hasFetched.current) return;
     hasFetched.current = true;
 
@@ -293,7 +306,6 @@ export default function HasilAnalisis({ formData, onApiDataLoaded }: StepProps) 
         }
 
         const data = await response.json();
-        setApiData(data);
 
         if (onApiDataLoaded) {
           onApiDataLoaded(data);
@@ -313,16 +325,19 @@ export default function HasilAnalisis({ formData, onApiDataLoaded }: StepProps) 
   // ============================================================================
   if (isLoading) {
     return (
-      <div className={styles.loadingContainer}>
-        <Spinner size="huge" appearance="primary" />
-        <div>
-          <Text size={500} weight="semibold" block style={{ marginBottom: '8px' }}>
-            Sistem AI Sedang Menganalisis...
-          </Text>
-          <Text size={300} style={{ color: tokens.colorNeutralForeground2 }}>
-            Harap tunggu. Komputasi matriks SHAP, skenario DiCE, dan penyusunan
-            narasi medis oleh Gemini AI dapat memakan waktu beberapa detik.
-          </Text>
+      <div className={styles.container}>
+        <div className={styles.loadingContainer}>
+          <Spinner size="huge" appearance="primary" label="Menghubungkan ke Mesin AI..." labelPosition="below" />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}>
+            <Text size={600} weight="bold" block style={{ color: tokens.colorBrandForeground1 }}>
+              Sistem AI Sedang Menganalisis...
+            </Text>
+            <Text size={300} style={{ color: tokens.colorNeutralForeground2, lineHeight: '1.5' }}>
+              Harap tunggu sebentar. Komputasi matriks pengaruh variabel (SHAP), penyusunan skenario 
+              intervensi klinis (DiCE), dan penyusunan narasi medis oleh <b>Gemini AI</b> sedang diproses. 
+              Ini biasanya memakan waktu beberapa detik.
+            </Text>
+          </div>
         </div>
       </div>
     );
@@ -361,10 +376,20 @@ export default function HasilAnalisis({ formData, onApiDataLoaded }: StepProps) 
 
   return (
     <div className={styles.container}>
-      <h2 className={styles.sectionTitle}>
-        <DataTrendingRegular />
-        Laporan Hasil Analisis &amp; Prediksi Klinis
-      </h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `1px solid ${tokens.colorNeutralStroke2}`, paddingBottom: '8px' }}>
+        <h2 className={styles.sectionTitle} style={{ borderBottom: 'none', paddingBottom: 0, margin: 0 }}>
+          <DataTrendingRegular />
+          Laporan Hasil Analisis &amp; Prediksi Klinis
+        </h2>
+        {onClearApiData && (
+          <Button 
+            appearance="outline" 
+            onClick={() => onClearApiData()}
+          >
+            Analisis Ulang
+          </Button>
+        )}
+      </div>
 
       {/* ================================================================ */}
       {/* BOX 1: SUMMARY CARDS + CONFIDENCE BAR                           */}
