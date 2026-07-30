@@ -36,12 +36,13 @@ const useStyles = makeStyles({
 export default function DashboardMain() {
   const styles = useStyles();
   
-  const { data: statsResponse, isLoading } = useSWR('/api/get-stats', fetcher, {
+  const { data: statsResponse, error, isLoading } = useSWR('/api/get-stats', fetcher, {
     refreshInterval: 0,
     revalidateOnFocus: true,
   });
 
   const stats = statsResponse?.success ? statsResponse.data : null;
+  const errorMessage = error?.message || (statsResponse && !statsResponse.success ? statsResponse.error || statsResponse.message : null);
 
   return (
     <div className={styles.dashboardWrapper}>
@@ -53,7 +54,7 @@ export default function DashboardMain() {
           <Spinner size="medium" label="Sinkronisasi data ringkasan..." />
         </div>
       ) : (
-        stats && (
+        stats ? (
           <>
             {/* 2. Judul dan Bagian Statistik Metrik */}
             <Title3 className={styles.sectionHeading}>Statistik Ringkas Pasien</Title3>
@@ -68,7 +69,17 @@ export default function DashboardMain() {
             {/* 3. Bagian Log Aktivitas Analisis Terakhir */}
             <DashboardRecentSection assessments={stats.latestAssessments} />
           </>
-        )
+        ) : errorMessage ? (
+          <div style={{ padding: '24px', backgroundColor: '#ffe5e5', borderRadius: '8px', border: '1px solid #ff4d4d' }}>
+            <Title3 style={{ color: '#d10000' }}>Gagal Memuat Statistik</Title3>
+            <p style={{ color: '#d10000', marginTop: '8px' }}>
+              Error: {typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage)}
+            </p>
+            <p style={{ marginTop: '8px', fontSize: '12px' }}>
+              Pesan ini hanya terlihat saat terjadi kesalahan pada server (Database atau Konfigurasi).
+            </p>
+          </div>
+        ) : null
       )}
     </div>
   );
